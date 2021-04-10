@@ -2,7 +2,10 @@ const path = require("path")
 const fs = require("fs").promises
 const unified = require("unified")
 const markdown = require("remark-parse")
+const math = require("remark-math")
 const remark2rehype = require("remark-rehype")
+const katex = require("rehype-katex")
+const document = require("rehype-document")
 const html = require("rehype-stringify")
 const vfile = require("to-vfile")
 const reporter = require("vfile-reporter")
@@ -16,7 +19,12 @@ async function buildMarkdown(dir, fileRel) {
   const distFile = path.join(dir, "dist", fileRel)
   const processor = unified()
     .use(markdown)
+    .use(math)
     .use(remark2rehype)
+    .use(katex)
+    .use(document, {
+      css: ["https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css"]
+    })
     .use(html)
 
   const resultFile = await processor.process(await vfile.read(file))
