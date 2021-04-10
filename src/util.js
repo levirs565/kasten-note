@@ -22,4 +22,27 @@ function getMarkdownFiles(dir) {
   return result
 }
 
+const configFileName = "kasten.yml"
+
+async function getCurrentDir() {
+  let dirs = process.cwd().split(path.sep)
+  let currentDir = null
+  for (let i = dirs.length; i >= 0; i--) {
+    const dir = dirs.slice(0, i).join(path.sep)
+    const configFile = path.join(dir, configFileName)
+    try {
+      const fileStat = await fs.promises.stat(configFile)
+      if (fileStat.isFile) {
+        currentDir = dir
+        break
+      }
+    } catch (e) {
+    }
+  }
+
+  if (!currentDir) throw "Could not find kasten directory"
+  return currentDir
+}
+
 exports.getMarkdownFiles = getMarkdownFiles
+exports.getCurrentDir = getCurrentDir
