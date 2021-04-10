@@ -24,7 +24,7 @@ async function buildMarkdown(dir, fileRel) {
   resultFile.path = distFile
   resultFile.extname = ".html"
 
-  fs.mkdir(resultFile.dirname, { recursive: true })
+  await fs.mkdir(resultFile.dirname, { recursive: true })
   await vfile.write(resultFile)
 }
 
