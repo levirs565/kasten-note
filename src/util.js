@@ -1,13 +1,16 @@
 const path = require("path")
 const fs = require("fs")
 
-function* readDirRecursive(dir, child) {
+const excludedDirs = ["dist", ".git"]
+exports.excludedDirs = excludedDirs
+
+function* readDirRecursive(dir, child, excludedDirs) {
   const curDir = path.join(dir, child)
   const files = fs.readdirSync(curDir, { withFileTypes: true })
   for (file of files) {
     const fileRelative = path.join(child, file.name) 
-    if (file.isDirectory()) {
-      yield* readDirRecursive(dir, fileRelative)
+    if (file.isDirectory() && !excludedDirs.includes(fileRelative)) {
+      yield* readDirRecursive(dir, fileRelative, excludedDirs)
     } else yield fileRelative
   }
 }
@@ -15,7 +18,7 @@ function* readDirRecursive(dir, child) {
 function getMarkdownFiles(dir) {
   const result = []
 
-  for (file of readDirRecursive(dir, ""))
+  for (file of readDirRecursive(dir, "", excludedDirs))
     if (path.extname(file) == ".md")
       result.push(file)
 
