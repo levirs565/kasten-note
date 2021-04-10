@@ -1,6 +1,7 @@
 {
 	"name": "kasten",
 	"dependencies": {
+		"chokidar": "^3.5.1",
 		"commander": "^7.2.0",
 		"rehype-document": "^5.1.0",
 		"rehype-katex": "^4.0.0",
