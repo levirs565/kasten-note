@@ -6,6 +6,11 @@ const pipeline = require("./pipeline")
 
 async function buildDir(opts) {
   const dir = await util.getCurrentDir()
+  const dest = path.join(dir, "dist") 
+
+  if (opts.clean)
+    await fs.promises.rmdir(dest, { recursive: true })
+
   for (file of util.getMarkdownFiles(dir)) {
     console.log(`Processing ${file}`)
     await pipeline.buildMarkdown(dir, file)
@@ -35,7 +40,7 @@ async function buildDir(opts) {
     const paths = path.parse(p)
     paths.ext = ".html"
     paths.base = paths.name + paths.ext
-    fs.unlinkSync(path.join(dir, "dist", path.format(paths))) 
+    fs.unlinkSync(path.join(dest, path.format(paths))) 
   }
 
   const watcher = chokidar.watch(dir, { 

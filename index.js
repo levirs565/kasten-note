@@ -7,6 +7,7 @@ program
 
 program .command("build")
   .description("build all notes to HTML")
+  .option("--no-clean", "clean dist directory before build")
   .option("-w, --watch", "watch directory for change", false)
   .action(build.buildDir)
 
