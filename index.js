@@ -1,5 +1,6 @@
 const path = require("path")
 const fs = require("fs").promises
+const util = require("./src/util")
 const pipeline = require("./src/pipeline")
 
 const configFileName = "kasten.yml"
@@ -26,5 +27,8 @@ async function getCurrentDir() {
 
 (async () => {
   const dir = await getCurrentDir()
-  pipeline.buildMarkdown(dir, "index.md") 
+  for (file of util.getMarkdownFiles(dir)) {
+    console.log(`Processing ${file}`)
+    await pipeline.buildMarkdown(dir, file) 
+  }
 })()
