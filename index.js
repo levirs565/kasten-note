@@ -1,10 +1,12 @@
-const util = require("./src/util")
-const pipeline = require("./src/pipeline");
+const { program } = require("commander")
+const build = require("./src/build")
 
-(async () => {
-  const dir = await util.getCurrentDir()
-  for (file of util.getMarkdownFiles(dir)) {
-    console.log(`Processing ${file}`)
-    await pipeline.buildMarkdown(dir, file)
-  }
-})()
+program
+  .name("kasten")
+  .version("0.1")
+
+program .command("build")
+  .description("build all notes to HTML")
+  .action(build.buildDir)
+
+program.parseAsync(process.argv)
