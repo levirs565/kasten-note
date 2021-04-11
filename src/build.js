@@ -11,13 +11,6 @@ async function buildDir(opts) {
   if (opts.clean)
     await fs.promises.rmdir(dest, { recursive: true })
 
-  for (file of util.getMarkdownFiles(dir)) {
-    console.log(`Processing ${file}`)
-    await pipeline.buildMarkdown(dir, file)
-  }
-
-  if (!opts.watch) return
-
   function isExcluded(p) {
     const component = p.split(path.sep)
     return util.excludedDirs.includes(component[0])
@@ -45,7 +38,7 @@ async function buildDir(opts) {
 
   const watcher = chokidar.watch(dir, { 
     cwd: dir,
-    ignoreInitial: true,
+    persistent: opts.watch
   })
   watcher
     .on("change", maybeRebuild("changed"))
