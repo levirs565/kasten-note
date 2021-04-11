@@ -1,8 +1,8 @@
 const path = require("path")
 const fs = require("fs")
 
-const excludedDirs = ["dist", ".git"]
-exports.excludedDirs = excludedDirs
+const excludedFiles = ["dist/**", "**/.git/**"]
+exports.excludedFiles = excludedFiles
 
 const configFileName = "kasten.yml"
 

@@ -11,24 +11,14 @@ async function buildDir(opts) {
   if (opts.clean)
     await fs.promises.rmdir(dest, { recursive: true })
 
-  function isExcluded(p) {
-    const component = p.split(path.sep)
-    return util.excludedDirs.includes(component[0])
-      || path.extname(p) != ".md"
-  }
-
   function maybeRebuild(event) {
     return function(path) {
-      if (isExcluded(path)) return
-
       console.log(`${path} is ${event}.`)
       pipeline.buildMarkdown(dir, path)
     }
   }
 
   function removeDist(p) {
-    if (isExcluded(p)) return
-
     console.log(`${p} is removed.`)
     const paths = path.parse(p)
     paths.ext = ".html"
@@ -36,9 +26,10 @@ async function buildDir(opts) {
     fs.unlinkSync(path.join(dest, path.format(paths))) 
   }
 
-  const watcher = chokidar.watch(dir, { 
+  const watcher = chokidar.watch("**/*.md", { 
     cwd: dir,
-    persistent: opts.watch
+    persistent: opts.watch,
+    ignored: util.excludedFiles
   })
   watcher
     .on("change", maybeRebuild("changed"))
