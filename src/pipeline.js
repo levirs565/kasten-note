@@ -1,5 +1,6 @@
 const path = require("path")
 const fs = require("fs").promises
+const util = require("./util")
 const unified = require("unified")
 const markdown = require("remark-parse")
 const gfm = require("remark-gfm")
@@ -17,7 +18,7 @@ const reporter = require("vfile-reporter")
  */
 async function buildMarkdown(dir, fileRel) {
   const file = path.join(dir, fileRel)
-  const distFile = path.join(dir, "dist", fileRel)
+  const distFile = util.getDistFile(dir, fileRel)
   const processor = unified()
     .use(markdown)
     .use(gfm)
@@ -32,7 +33,6 @@ async function buildMarkdown(dir, fileRel) {
   const resultFile = await processor.process(await vfile.read(file))
   console.log(reporter(resultFile))
   resultFile.path = distFile
-  resultFile.extname = ".html"
 
   await fs.mkdir(resultFile.dirname, { recursive: true })
   await vfile.write(resultFile)

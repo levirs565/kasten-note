@@ -25,5 +25,13 @@ async function getCurrentDir() {
   if (!currentDir) throw "Could not find kasten directory"
   return currentDir
 }
-
 exports.getCurrentDir = getCurrentDir
+
+exports.getDistDir = function (dir) {
+  return path.join(dir, "dist")
+}
+
+exports.getDistFile = function (dir, fileRel) {
+  const parsed = path.parse(fileRel)
+  return path.join(exports.getDistDir(dir), parsed.dir, parsed.name + ".html")
+}

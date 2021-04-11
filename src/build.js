@@ -6,10 +6,9 @@ const pipeline = require("./pipeline")
 
 async function buildDir(opts) {
   const dir = await util.getCurrentDir()
-  const dest = path.join(dir, "dist") 
 
   if (opts.clean)
-    await fs.promises.rmdir(dest, { recursive: true })
+    await fs.promises.rmdir(util.getDistDir(dir), { recursive: true })
 
   function maybeRebuild(event) {
     return function(path) {
@@ -20,10 +19,7 @@ async function buildDir(opts) {
 
   function removeDist(p) {
     console.log(`${p} is removed.`)
-    const paths = path.parse(p)
-    paths.ext = ".html"
-    paths.base = paths.name + paths.ext
-    fs.unlinkSync(path.join(dest, path.format(paths))) 
+    fs.unlinkSync(util.getDistFile(dir, p)) 
   }
 
   const watcher = chokidar.watch("**/*.md", { 
