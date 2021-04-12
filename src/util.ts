@@ -1,12 +1,11 @@
-const path = require("path")
-const fs = require("fs")
+import path from "path"
+import fs from "fs"
 
-const excludedFiles = ["dist/**", "**/.git/**"]
-exports.excludedFiles = excludedFiles
+export const excludedFiles = ["dist/**", "**/.git/**"]
 
 const configFileName = "kasten.yml"
 
-async function getCurrentDir() {
+export async function getCurrentDir() {
   let dirs = process.cwd().split(path.sep)
   let currentDir = null
   for (let i = dirs.length; i >= 0; i--) {
@@ -14,7 +13,7 @@ async function getCurrentDir() {
     const configFile = path.join(dir, configFileName)
     try {
       const fileStat = await fs.promises.stat(configFile)
-      if (fileStat.isFile) {
+      if (fileStat.isFile()) {
         currentDir = dir
         break
       }
@@ -25,21 +24,20 @@ async function getCurrentDir() {
   if (!currentDir) throw "Could not find kasten directory"
   return currentDir
 }
-exports.getCurrentDir = getCurrentDir
 
-exports.getDistDir = function (dir) {
+export function getDistDir(dir: string) {
   return path.join(dir, "dist")
 }
 
-exports.getDistName = function (fileRel) {
+export function getDistName(fileRel: string) {
   const parsed = path.parse(fileRel)
   return path.join(parsed.dir, parsed.name + ".html")
 }
 
-exports.getDistFile = function (dir, fileRel) {
-  return path.join(exports.getDistDir(dir), exports.getDistName(fileRel))
+export function getDistFile(dir: string, fileRel: string) {
+  return path.join(getDistDir(dir), getDistName(fileRel))
 }
 
-exports.toUnixPath = function (fileName) {
+export function toUnixPath(fileName: string) {
   return fileName.replace("\\", "/")
 }
