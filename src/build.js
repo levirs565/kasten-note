@@ -10,16 +10,23 @@ async function buildDir(opts) {
   if (opts.clean)
     await fs.promises.rmdir(util.getDistDir(dir), { recursive: true })
 
+  function maybeUpdate(path) {
+    if (opts.onUpdate)
+      opts.onUpdate(path)
+  }
+
   function maybeRebuild(event) {
-    return function(path) {
+    return async function(path) {
       console.log(`${path} is ${event}.`)
-      pipeline.buildMarkdown(dir, path)
+      await pipeline.buildMarkdown(dir, path)
+      maybeUpdate(util.getDistName(path))
     }
   }
 
   function removeDist(p) {
     console.log(`${p} is removed.`)
     fs.unlinkSync(util.getDistFile(dir, p)) 
+    maybeUpdate(util.getDistName(p))
   }
 
   const watcher = chokidar.watch("**/*.md", { 

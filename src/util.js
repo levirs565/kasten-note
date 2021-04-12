@@ -31,7 +31,11 @@ exports.getDistDir = function (dir) {
   return path.join(dir, "dist")
 }
 
-exports.getDistFile = function (dir, fileRel) {
+exports.getDistName = function (fileRel) {
   const parsed = path.parse(fileRel)
-  return path.join(exports.getDistDir(dir), parsed.dir, parsed.name + ".html")
+  return path.join(parsed.dir, parsed.name + ".html")
+}
+
+exports.getDistFile = function (dir, fileRel) {
+  return path.join(exports.getDistDir(dir), exports.getDistName(fileRel))
 }

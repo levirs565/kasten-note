@@ -12,6 +12,7 @@ dependencies:
   to-vfile: 6.1.0
   unified: 9.2.1
   vfile-reporter: 6.0.2
+  ws: 7.4.4
 lockfileVersion: 5.2
 packages:
   /@types/hast/2.3.1:
@@ -1140,6 +1141,20 @@ packages:
     dev: false
     resolution:
       integrity: sha512-wYxSGajtmoP4WxfejAPIr4l0fVh+jeMXZb08wNc0tMg6xsfZXj3cECqIK0G7ZAqUq0PP8WlMDtaOGVBTAWztNw==
+  /ws/7.4.4:
+    dev: false
+    engines:
+      node: '>=8.3.0'
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: ^5.0.2
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+    resolution:
+      integrity: sha512-Qm8k8ojNQIMx7S+Zp8u/uHOx7Qazv3Yv4q68MiWWWOJhiwG5W3x7iqmRtJo8xxrciZUY4vRxUTJCKuRnF28ZZw==
   /xtend/4.0.2:
     dev: false
     engines:
@@ -1164,3 +1179,4 @@ specifiers:
   to-vfile: ^6.1.0
   unified: ^9.2.1
   vfile-reporter: ^6.0.2
+  ws: ^7.4.4
