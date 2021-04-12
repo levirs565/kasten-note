@@ -1,7 +1,7 @@
 import { program } from "commander"
 import { getCurrentDir } from "./util"
 import Builder from "./builder"
-import { serveDir } from "./serve"
+import Server from "./server"
 import { version } from "../package.json"
 
 program
@@ -27,9 +27,21 @@ program.command("build")
     )).run()
   })
 
+interface ServeOpts {
+  clean: boolean
+}
+
 program.command("serve")
   .description("build and serve notes")
   .option(cleanOpt[0], cleanOpt[1])
-  .action(serveDir)
+  .action(async (opts: ServeOpts) => {
+    const dir = await getCurrentDir()
+    const builder = new Builder(dir, opts.clean, true)
+    const server = new Server(dir)
+
+    builder.onUpdate = server.notifyUpdate
+    builder.run()
+    server.run()
+  })
 
 program.parseAsync(process.argv)
