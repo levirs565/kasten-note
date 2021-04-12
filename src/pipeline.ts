@@ -1,5 +1,5 @@
 import path from "path"
-import fs from "fs/promises"
+import { promises as fs } from "fs"
 import * as util from "./util"
 import unified from "unified"
 import markdown from "remark-parse"

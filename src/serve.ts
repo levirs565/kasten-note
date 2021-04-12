@@ -1,7 +1,7 @@
 import express from "express"
 import ws from "ws"
 import path from "path"
-import fs from "fs/promises"
+import { promises as fs } from "fs"
 import * as build from "./build"
 import * as util from "./util"
 
