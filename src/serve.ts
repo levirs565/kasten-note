@@ -1,11 +1,11 @@
-const express = require("express")
-const ws = require("ws")
-const path = require("path")
-const fs = require("fs").promises
-const build = require("./build")
-const util = require("./util")
+import express from "express"
+import ws from "ws"
+import path from "path"
+import fs from "fs/promises"
+import * as build from "./build"
+import * as util from "./util"
 
-async function maybeSendHTML(dir, fileName, res) {
+async function maybeSendHTML(dir: string, fileName: string, res: express.Response) {
   try {
     let content = await fs.readFile(fileName, "utf-8")
     const relPath = util.toUnixPath(path.relative(dir, fileName))
@@ -25,16 +25,20 @@ async function maybeSendHTML(dir, fileName, res) {
   }
 }
 
-exports.serveDir = async function(opts) {
+interface ServeOpts {
+  clean: boolean
+}
+
+export async function serveDir(opts: ServeOpts) {
   const dir = await util.getCurrentDir()
   const dist = util.getDistDir(dir)
   const clientDir = path.resolve(__dirname, "../client")
-  let webSocket = null
+  let webSocket: ws.Server | null = null
 
-  function onUpdate(fname) {
+  function onUpdate(fname: string) {
     if (webSocket) {
       const path = util.toUnixPath(fname) 
-      for (client of webSocket.clients) {
+      for (const client of webSocket.clients) {
         client.send(path)
       }
     }
