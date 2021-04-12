@@ -6,3 +6,5 @@ declare module "to-vfile" {
 declare module "vfile-reporter" {
   export default function (vfile: any): string
 }
+
+declare module "*.json";

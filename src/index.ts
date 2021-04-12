@@ -1,10 +1,11 @@
 import { program } from "commander"
 import { buildDir } from "./build"
 import { serveDir } from "./serve"
+import { version } from "../package.json"
 
 program
   .name("kasten")
-  .version("0.1")
+  .version(version)
 
 const cleanOpt = ["--no-clean", "clean dist directory before build"]
 
