@@ -39,3 +39,7 @@ exports.getDistName = function (fileRel) {
 exports.getDistFile = function (dir, fileRel) {
   return path.join(exports.getDistDir(dir), exports.getDistName(fileRel))
 }
+
+exports.toUnixPath = function (fileName) {
+  return fileName.replace("\\", "/")
+}

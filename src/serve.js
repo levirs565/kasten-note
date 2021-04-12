@@ -8,7 +8,7 @@ const util = require("./util")
 async function maybeSendHTML(dir, fileName, res) {
   try {
     let content = await fs.readFile(fileName, "utf-8")
-    const relPath = path.relative(dir, fileName).replace("\\", "/")
+    const relPath = util.toUnixPath(path.relative(dir, fileName))
     content +=  `
       <script>window.currentFileName = "${relPath}"</script>
       <script src='/reloader.js'></script>
@@ -31,8 +31,9 @@ exports.serveDir = async function(opts) {
   const clientDir = path.resolve(__dirname, "../client")
   let webSocket = null
 
-  function onUpdate(path) {
+  function onUpdate(fname) {
     if (webSocket) {
+      const path = util.toUnixPath(fname) 
       for (client of webSocket.clients) {
         client.send(path)
       }
