@@ -2,7 +2,7 @@ import express from "express"
 import ws from "ws"
 import path from "path"
 import { promises as fs } from "fs"
-import * as build from "./build"
+import Builder from "./builder"
 import * as util from "./util"
 
 async function maybeSendHTML(dir: string, fileName: string, res: express.Response) {
@@ -44,11 +44,12 @@ export async function serveDir(opts: ServeOpts) {
     }
   }
 
-  build.buildDir({
-    watch: true,
-    onUpdate,
-    ...opts
-  })
+  new Builder(
+    dir,
+    opts.clean,
+    true
+  ).run()
+
   const app = express()
 
   app.use(express.static(clientDir))
