@@ -29,9 +29,9 @@ export function getDistDir(dir: string) {
   return path.join(dir, "dist")
 }
 
-export function getDistName(fileRel: string) {
+export function getDistName(fileRel: string, extension = ".html") {
   const parsed = path.parse(fileRel)
-  return path.join(parsed.dir, parsed.name + ".html")
+  return path.join(parsed.dir, parsed.name + extension)
 }
 
 export function getDistFile(dir: string, fileRel: string) {
@@ -39,5 +39,5 @@ export function getDistFile(dir: string, fileRel: string) {
 }
 
 export function toUnixPath(fileName: string) {
-  return fileName.replace("\\", "/")
+  return fileName.replace(/\\/g, "/")
 }
