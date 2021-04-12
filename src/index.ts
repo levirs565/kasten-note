@@ -1,6 +1,6 @@
-const { program } = require("commander")
-const build = require("./src/build")
-const serve = require("./src/serve")
+import { program } from "commander"
+import { buildDir } from "./build"
+import { serveDir } from "./serve"
 
 program
   .name("kasten")
@@ -10,13 +10,13 @@ const cleanOpt = ["--no-clean", "clean dist directory before build"]
 
 program.command("build")
   .description("build all notes to HTML")
-  .option(...cleanOpt)
+  .option(cleanOpt[0], cleanOpt[1])
   .option("-w, --watch", "watch directory for change", false)
-  .action(build.buildDir)
+  .action(buildDir)
 
 program.command("serve")
   .description("build and serve notes")
-  .option(...cleanOpt)
-  .action(serve.serveDir)
+  .option(cleanOpt[0], cleanOpt[1])
+  .action(serveDir)
 
 program.parseAsync(process.argv)
