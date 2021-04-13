@@ -1,5 +1,4 @@
 dependencies:
-  '@types/node': 14.14.37
   chokidar: 3.5.1
   commander: 7.2.0
   express: 4.17.1
@@ -10,16 +9,24 @@ dependencies:
   remark-math: 4.0.0
   remark-parse: 9.0.0
   remark-rehype: 8.0.0
+  remark-wiki-link: 1.0.2
   to-vfile: 6.1.0
   unified: 9.2.1
   vfile-reporter: 6.0.2
   ws: 7.4.4
 devDependencies:
   '@types/express': 4.17.11
+  '@types/node': 14.14.37
   '@types/ws': 7.4.1
   typescript: 4.2.4
 lockfileVersion: 5.2
 packages:
+  /@babel/runtime/7.13.10:
+    dependencies:
+      regenerator-runtime: 0.13.7
+    dev: false
+    resolution:
+      integrity: sha512-4QPkjJq6Ns3V/RgpEahRk+AGfL0eO6RHHtTWoNNr5mO49G6B5+X6d6THgWEAvTrznU5xYpbAlVKRYcsCgh/Akw==
   /@types/body-parser/1.19.0:
     dependencies:
       '@types/connect': 3.4.34
@@ -71,6 +78,7 @@ packages:
     resolution:
       integrity: sha512-YATxVxgRqNH6nHEIsvg6k2Boc1JHI9ZbH5iWFFv/MTkchz3b1ieGDa5T0a9RznNdI0KhVbdbWSN+KWWrQZRxTw==
   /@types/node/14.14.37:
+    dev: true
     resolution:
       integrity: sha512-XYmBiy+ohOR4Lh5jE379fV2IU+6Jn4g5qASinhitfyO71b/sCo6MKsMLF5tc7Zf2CE8hViVQyYSobJNke8OvUw==
   /@types/parse5/5.0.3:
@@ -685,6 +693,17 @@ packages:
     dev: false
     resolution:
       integrity: sha512-JoPBfJ3gBnHZ18icCwHR50orC9kNH81tiR1gs01D8Q5YpV6adHNO9nKNuFBCJQ941/32PT1a63UF/DitmS3amQ==
+  /mdast-util-to-markdown/0.5.4:
+    dependencies:
+      '@types/unist': 2.0.3
+      longest-streak: 2.0.4
+      mdast-util-to-string: 2.0.0
+      parse-entities: 2.0.0
+      repeat-string: 1.6.1
+      zwitch: 1.0.5
+    dev: false
+    resolution:
+      integrity: sha512-0jQTkbWYx0HdEA/h++7faebJWr5JyBoBeiRf0u3F4F3QtnyyGaWIsOwo749kRb1ttKrLLr+wRtOkfou9yB0p6A==
   /mdast-util-to-markdown/0.6.5:
     dependencies:
       '@types/unist': 2.0.3
@@ -700,6 +719,13 @@ packages:
     dev: false
     resolution:
       integrity: sha512-AW4DRS3QbBayY/jJmD8437V1Gombjf8RSOUCMFBuo5iHi58AGEgVCKQ+ezHkZZDpAQS75hcBMpLqjpJTjtUL7w==
+  /mdast-util-wiki-link/0.0.1:
+    dependencies:
+      '@babel/runtime': 7.13.10
+      mdast-util-to-markdown: 0.5.4
+    dev: false
+    resolution:
+      integrity: sha512-mQGhpvS1kICzDvC4me3vV4L/0msyGTvoHWIjqI0wUR1ToQ+CMy1o+tDVsS1G6QrXMMHOY0I8S9k6qwRfjxS6cA==
   /mdurl/1.0.1:
     dev: false
     resolution:
@@ -766,6 +792,12 @@ packages:
     dev: false
     resolution:
       integrity: sha512-ZJXsT2eVPM8VTmcw0CPSDeyonOn9SziGK3Z+nkf9Vb6xMPeU+4JMEnO6vzDL10562Favw8Vste74f54rxJ/i6Q==
+  /micromark-extension-wiki-link/0.0.4:
+    dependencies:
+      '@babel/runtime': 7.13.10
+    dev: false
+    resolution:
+      integrity: sha512-dJc8AfnoU8BHkN+7fWZvIS20SMsMS1ZlxQUn6We67MqeKbOiEDZV5eEvCpwqGBijbJbxX3Kxz879L4K9HIiOvw==
   /micromark/2.11.4:
     dependencies:
       debug: 4.3.1
@@ -903,6 +935,10 @@ packages:
       node: '>=8.10.0'
     resolution:
       integrity: sha512-cMhu7c/8rdhkHXWsY+osBhfSy0JikwpHK/5+imo+LpeasTF8ouErHrlYkwT0++njiyuDvc7OFY5T3ukvZ8qmFQ==
+  /regenerator-runtime/0.13.7:
+    dev: false
+    resolution:
+      integrity: sha512-a54FxoJDIr27pgf7IgeQGxmqUNYrcV338lf/6gH456HZ/PhX+5BcwHXG9ajESmwe6WRO0tAzRUrRmNONWgkrew==
   /rehype-document/5.1.0:
     dependencies:
       '@types/hast': 2.3.1
@@ -962,6 +998,14 @@ packages:
     dev: false
     resolution:
       integrity: sha512-gVvOH02TMFqXOWoL6iXU7NXMsDJguNkNuMrzfkQeA4V6WCyHQnOKptn+IQBVVPuIH2sMJBwo8hlrmtn1MLTh9w==
+  /remark-wiki-link/1.0.2:
+    dependencies:
+      '@babel/runtime': 7.13.10
+      mdast-util-wiki-link: 0.0.1
+      micromark-extension-wiki-link: 0.0.4
+    dev: false
+    resolution:
+      integrity: sha512-lPCfPUXO9GrpZxJ6Y0y4DoMcqLyYm9Y5Mv4pUyZqVGJkiYxHJOWUNkNHhdF8GgWg6ILOcvemExUOUhQQpZ5Q0Q==
   /repeat-string/1.6.1:
     dev: false
     engines:
@@ -1249,6 +1293,7 @@ specifiers:
   remark-math: ^4.0.0
   remark-parse: ^9.0.0
   remark-rehype: ^8.0.0
+  remark-wiki-link: ^1.0.2
   to-vfile: ^6.1.0
   typescript: ^4.2.4
   unified: ^9.2.1

@@ -11,6 +11,7 @@
     "remark-math": "^4.0.0",
     "remark-parse": "^9.0.0",
     "remark-rehype": "^8.0.0",
+    "remark-wiki-link": "^1.0.2",
     "to-vfile": "^6.1.0",
     "unified": "^9.2.1",
     "vfile-reporter": "^6.0.2",

@@ -7,4 +7,8 @@ declare module "vfile-reporter" {
   export default function (vfile: any): string
 }
 
+declare module "remark-wiki-link" {
+  export const wikiLinkPlugin: any
+}
+
 declare module "*.json";
