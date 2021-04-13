@@ -5,4 +5,4 @@ are:
 
 - Github Flavoured Markdown
 - Math (using KaTex)
-- Wiki Link
+- [[Wiki Link]]
