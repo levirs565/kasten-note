@@ -21,3 +21,7 @@ Run `kasten build` to build all notes into HTML.
 Run `kasten serve` to build all notes, serve HTML and live reload when note changed.
 
 Run `kasten help` to get more option.
+
+## More
+
+See [[Markdown Features]] for supported Markdown features.
