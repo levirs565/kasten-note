@@ -40,8 +40,8 @@ program.command("serve")
     const server = new Server(dir)
 
     builder.onUpdate = server.notifyUpdate
+    builder.onAfterReady = server.run.bind(server)
     builder.run()
-    server.run()
   })
 
 program.parseAsync(process.argv)

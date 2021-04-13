@@ -21,6 +21,7 @@ export default class Builder {
   wikiLinks = new Set<string>()
   pendingBuild = new Array<string>()
   isReady = false
+  onAfterReady!: () => void
 
   constructor(dir: string, clean: boolean, watch: boolean) {
     this.kastenDir = dir
@@ -63,8 +64,10 @@ export default class Builder {
     console.log("Builder is ready now")
     console.log(`Wiki links is: ${Array.from(this.wikiLinks).join(",")}`)
     for (const file of this.pendingBuild) {
-      this.rebuild(file)
+      await this.rebuild(file)
     }
+    if (this.onAfterReady)
+      this.onAfterReady()
   }
 
   async run() {
