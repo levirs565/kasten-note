@@ -18,7 +18,7 @@ export default class Builder {
   clean: boolean
   watch: boolean
   onUpdate!: (fileName: string) => void
-  wikiLinks = new Set<string>()
+  wikiLinks = new Array<string>()
   pendingBuild = new Array<string>()
   isReady = false
   onAfterReady!: () => void
@@ -35,7 +35,7 @@ export default class Builder {
   }
 
   private async rebuild(path: string) {
-    await pipeline.buildMarkdown(this.kastenDir, path, Array.from(this.wikiLinks))
+    await pipeline.buildMarkdown(this.kastenDir, path, this.wikiLinks)
     this.maybeUpdate(util.getDistName(path))
   }
 
@@ -46,7 +46,7 @@ export default class Builder {
 
   private onAdd(p: string) {
     console.log(`${p} is added`)
-    this.wikiLinks.add(getFileUrl(p))
+    this.wikiLinks.push(getFileUrl(p))
     if (this.isReady)
       this.rebuild(p)
     else this.pendingBuild.push(p)
@@ -54,7 +54,8 @@ export default class Builder {
 
   private onUnlink(p: string) {
     console.log(`${p} is removed.`)
-    this.wikiLinks.delete(getFileUrl(p))
+    const fileUrl = getFileUrl(p)
+    this.wikiLinks = this.wikiLinks.filter((url) => url != fileUrl)
     fs.unlinkSync(util.getDistFile(this.kastenDir, p))
     this.maybeUpdate(util.getDistName(p))
   }
@@ -62,7 +63,7 @@ export default class Builder {
   onReady = async () => {
     this.isReady = true
     console.log("Builder is ready now")
-    console.log(`Wiki links is: ${Array.from(this.wikiLinks).join(",")}`)
+    console.log(`Wiki links is: ${this.wikiLinks.join(",")}`)
     for (const file of this.pendingBuild) {
       await this.rebuild(file)
     }
