@@ -12,6 +12,10 @@ Features:
 
 Install kasten.
 
+```
+npm install -g kasten-note
+```
+
 Add `kasten.yml` to your directory (blank file).
 
 Now you can write your notes in Markdown.
