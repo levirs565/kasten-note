@@ -1,5 +1,5 @@
 {
-  "name": "kasten",
+  "name": "kasten-note",
   "dependencies": {
     "chokidar": "^3.5.1",
     "commander": "^7.2.0",
@@ -36,12 +36,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/levirs565/kasten.git"
+    "url": "git+https://github.com/levirs565/kasten-note.git"
   },
   "author": "Levi Rizki Saputra",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/levirs565/kasten/issues"
+    "url": "https://github.com/levirs565/kasten-note/issues"
   },
-  "homepage": "https://github.com/levirs565/kasten#readme"
+  "homepage": "https://github.com/levirs565/kasten-note#readme"
 }
