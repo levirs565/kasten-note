@@ -1,24 +1,15 @@
 import chokidar from "chokidar"
 import fs from "fs"
-import path from "path"
+import { KastenList } from "./base"
 import * as util from "./util"
 import * as pipeline from "./pipeline"
-
-function getFileUrl(p: string) {
-  let fname = util.getDistName(p, "")
-  if (path.basename(fname) == "index")
-    fname = path.dirname(fname) + "/"
-  if (fname == ".")
-    return "/"
-  return "/" + encodeURI(util.toUnixPath(fname))
-}
 
 export default class Builder {
   kastenDir: string
   clean: boolean
   watch: boolean
   onUpdate!: (fileName: string) => void
-  wikiLinks = new Array<string>()
+  kastenList = new KastenList()
   pendingBuild = new Array<string>()
   isReady = false
   onAfterReady!: () => void
@@ -35,7 +26,7 @@ export default class Builder {
   }
 
   private async rebuild(path: string) {
-    await pipeline.buildMarkdown(this.kastenDir, path, this.wikiLinks)
+    await pipeline.buildMarkdown(this.kastenDir, path, this.kastenList)
     this.maybeUpdate(util.getDistName(path))
   }
 
@@ -46,7 +37,7 @@ export default class Builder {
 
   private onAdd(p: string) {
     console.log(`${p} is added`)
-    this.wikiLinks.push(getFileUrl(p))
+    this.kastenList.addFile(p)
     if (this.isReady)
       this.rebuild(p)
     else this.pendingBuild.push(p)
@@ -54,8 +45,7 @@ export default class Builder {
 
   private onUnlink(p: string) {
     console.log(`${p} is removed.`)
-    const fileUrl = getFileUrl(p)
-    this.wikiLinks = this.wikiLinks.filter((url) => url != fileUrl)
+    this.kastenList.removeFile(p)
     fs.unlinkSync(util.getDistFile(this.kastenDir, p))
     this.maybeUpdate(util.getDistName(p))
   }
@@ -63,7 +53,7 @@ export default class Builder {
   onReady = async () => {
     this.isReady = true
     console.log("Builder is ready now")
-    console.log(`Wiki links is: ${this.wikiLinks.join(",")}`)
+    console.log(`Wiki links is: ${JSON.stringify(this.kastenList)}`)
     for (const file of this.pendingBuild) {
       await this.rebuild(file)
     }

@@ -1,5 +1,6 @@
 import path from "path"
 import { promises as fs } from "fs"
+import { KastenList } from "./base"
 import * as util from "./util"
 import unified from "unified"
 import markdown from "remark-parse"
@@ -17,7 +18,7 @@ import reporter from "vfile-reporter"
  * dir: Kasten root dir
  * fileRel: file name relative to root dir with extension
  */
-export async function buildMarkdown(dir: string, fileRel: string, permalinks: string[]) {
+export async function buildMarkdown(dir: string, fileRel: string, kastenList: KastenList) {
   const file = path.join(dir, fileRel)
   const distFile = util.getDistFile(dir, fileRel)
   const processor = unified()
@@ -25,10 +26,9 @@ export async function buildMarkdown(dir: string, fileRel: string, permalinks: st
     .use(gfm)
     .use(math)
     .use(wikiLinkPlugin, {
-      permalinks,
       hrefTemplate: (permalink: string) => permalink,
       pageResolver: (name: string) => [
-        permalinks.find((p) => path.basename(p) == encodeURIComponent(name))
+        kastenList.getById(name)?.urlPath
       ]
     })
     .use(remark2rehype)

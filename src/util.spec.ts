@@ -1,4 +1,4 @@
-import { getDistDir, getDistName, getDistFile, toUnixPath } from "./util"
+import { getDistDir, getDistName, getDistFile, toUnixPath, getFileId } from "./util"
 import { normalize } from "path"
 
 test("should return correct dist dir", () => {
@@ -18,4 +18,11 @@ test("should return correct dist file", () => {
 
 test("should convert path to unix", () => {
   expect(toUnixPath("a\\aaa/aa\\aa")).toBe("a/aaa/aa/aa")
+})
+
+test("should return correct file id", () => {
+  expect(getFileId("abc.md")).toBe("abc")
+  expect(getFileId("abc/cde.md")).toBe("cde")
+  expect(getFileId("fgh/index.md")).toBe("fgh")
+  expect(getFileId("fgh/ijk/index.md")).toBe("ijk")
 })
