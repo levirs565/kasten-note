@@ -31,6 +31,7 @@
   },
   "scripts": {
     "watch": "tsc --watch",
+    "start": "cd doc && tsc && node ../dist/index.js",
     "test": "jest"
   },
   "description": "Kasten is simple notes manager based on Zettelkasten method.",
