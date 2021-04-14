@@ -41,10 +41,3 @@ export function getDistFile(dir: string, fileRel: string) {
 export function toUnixPath(fileName: string) {
   return fileName.replace(/\\/g, "/")
 }
-
-export function getFileId(p: string) {
-  const name = path.basename(p, ".md") 
-  if (name != "index") return name
-
-  return path.basename(path.dirname(p))
-}

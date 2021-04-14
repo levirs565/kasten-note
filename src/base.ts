@@ -1,4 +1,4 @@
-import { getFileId, getDistName, toUnixPath } from "./util"
+import { getDistName, toUnixPath } from "./util"
 import { basename, dirname } from "path"
 
 export interface Kasten {
@@ -17,6 +17,13 @@ function getFileUrl(p: string) {
   if (fname == ".")
     return "/"
   return "/" + encodeURI(toUnixPath(fname))
+}
+
+function getFileId(p: string) {
+  const name = basename(p, ".md") 
+  if (name != "index") return name
+
+  return basename(dirname(p))
 }
 
 export class KastenList {

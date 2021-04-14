@@ -1,4 +1,4 @@
-import { KastenList } from "./base"
+import { KastenList, Kasten } from "./base"
 
 test("kasten list shold work in simple path", () => {
   const list = new KastenList()
@@ -27,4 +27,16 @@ test("kasten list should work in complex path", () => {
     fileName: name,
     urlPath: url
   })
+})
+
+test("kasten list should work when path is index.md", () => {
+  const list = new KastenList()
+  const kasten: Kasten = {
+    fileName: "tai/bau/index.md",
+    urlPath: "/tai/bau/"
+  }
+  const id = "bau"
+
+  list.addFile(kasten.fileName)
+  expect(list.getById(id)).toEqual(kasten)
 })
