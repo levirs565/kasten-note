@@ -1,5 +1,6 @@
 {
   "include": ["./src"],
+  "exclude": ["**/*.spec.ts"],
   "compilerOptions": {
     "rootDir": "./src",
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
