@@ -35,7 +35,7 @@
     "test": "jest"
   },
   "description": "Kasten is simple notes manager based on Zettelkasten method.",
-  "version": "0.1.0",
+  "version": "0.2.0-HEAD",
   "directories": {
     "doc": "doc"
   },
