@@ -43,4 +43,8 @@ export class KastenList {
   getById(id: string) {
     return this.maps[id]
   }
+
+  getAll() {
+    return this.maps
+  }
 }

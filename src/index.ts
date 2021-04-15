@@ -2,6 +2,7 @@ import { program } from "commander"
 import { getCurrentDir } from "./util"
 import Builder from "./builder"
 import Server from "./server"
+import { listKasten } from "./action"
 import { version } from "../package.json"
 
 program
@@ -42,6 +43,19 @@ program.command("serve")
     builder.onUpdate = server.notifyUpdate
     builder.onAfterReady = server.run.bind(server)
     builder.run()
+  })
+
+program.command("list")
+  .description("list notes")
+  .action(async () => {
+    const dir = await getCurrentDir()
+    listKasten(dir, (list) => {
+      console.log("ID,Path,Url")
+      for (const id in list.getAll()) {
+        const kasten = list.getById(id)!
+        console.log(`${id},${kasten.fileName},${kasten.urlPath}`)
+      }
+    })
   })
 
 program.parseAsync(process.argv)
