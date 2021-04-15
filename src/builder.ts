@@ -65,12 +65,7 @@ export default class Builder {
     if (this.clean)
       await fs.promises.rmdir(util.getDistDir(this.kastenDir), { recursive: true })
 
-    const watcher = chokidar.watch("**/*.md", {
-      cwd: this.kastenDir,
-      persistent: this.watch,
-      ignored: util.excludedFiles
-    })
-    watcher
+    util.watchNotes(this.kastenDir, this.watch)
       .on("change", this.onChange.bind(this))
       .on("add", this.onAdd.bind(this))
       .on("unlink", this.onUnlink.bind(this))

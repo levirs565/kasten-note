@@ -1,5 +1,6 @@
 import path from "path"
 import fs from "fs"
+import chokidar from "chokidar"
 
 export const excludedFiles = ["dist/**", "**/.git/**"]
 
@@ -40,4 +41,12 @@ export function getDistFile(dir: string, fileRel: string) {
 
 export function toUnixPath(fileName: string) {
   return fileName.replace(/\\/g, "/")
+}
+
+export function watchNotes(dir: string, persistent: boolean) {
+  return chokidar.watch("**/*.md", {
+    cwd: dir,
+    persistent: persistent,
+    ignored: excludedFiles
+  })
 }
