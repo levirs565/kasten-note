@@ -2,7 +2,7 @@ import { program } from "commander"
 import { getCurrentDir } from "./util"
 import Builder from "./builder"
 import Server from "./server"
-import { listKasten } from "./action"
+import { listNotes } from "./action"
 import { version } from "../package.json"
 
 program
@@ -49,11 +49,11 @@ program.command("list")
   .description("list notes")
   .action(async () => {
     const dir = await getCurrentDir()
-    listKasten(dir, (list) => {
+    listNotes(dir, (list) => {
       console.log("ID,Path,Url")
       for (const id in list.getAll()) {
-        const kasten = list.getById(id)!
-        console.log(`${id},${kasten.fileName},${kasten.urlPath}`)
+        const note = list.getById(id)!
+        console.log(`${id},${note.fileName},${note.urlPath}`)
       }
     })
   })

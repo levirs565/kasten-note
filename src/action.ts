@@ -1,8 +1,8 @@
-import { KastenList } from "./base"
+import { NoteList } from "./base"
 import { watchNotes } from "./util"
 
-export function listKasten(dir: string, onReady: (list: KastenList) => void) {
-  const list = new KastenList()
+export function listNotes(dir: string, onReady: (list: NoteList) => void) {
+  const list = new NoteList()
   watchNotes(dir, false)
     .on("add", (path) => {
       list.addFile(path)

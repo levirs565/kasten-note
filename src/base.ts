@@ -1,13 +1,13 @@
 import { getDistName, toUnixPath } from "./util"
 import { basename, dirname } from "path"
 
-export interface Kasten {
+export interface Note {
   fileName: string
   urlPath: string
 }
 
-type KastenIdMap = {
-  [key: string]: Kasten | undefined
+type NoteIdMap = {
+  [key: string]: Note | undefined
 }
 
 function getFileUrl(p: string) {
@@ -20,14 +20,14 @@ function getFileUrl(p: string) {
 }
 
 function getFileId(p: string) {
-  const name = basename(p, ".md") 
+  const name = basename(p, ".md")
   if (name != "index") return name
 
   return basename(dirname(p))
 }
 
-export class KastenList {
-  private maps: KastenIdMap = {}
+export class NoteList {
+  private maps: NoteIdMap = {}
 
   addFile(fileName: string) {
     this.maps[getFileId(fileName)] = {

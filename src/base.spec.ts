@@ -1,7 +1,7 @@
-import { KastenList, Kasten } from "./base"
+import { NoteList, Note } from "./base"
 
-test("kasten list shold work in simple path", () => {
-  const list = new KastenList()
+test("note list shold work in simple path", () => {
+  const list = new NoteList()
   const fname1 = "Yap.md"
   const url1 = "/Yap"
   const id1 = "Yap"
@@ -16,8 +16,8 @@ test("kasten list shold work in simple path", () => {
   expect(list.getById(id1)).toBeUndefined()
 })
 
-test("kasten list should work in complex path", () => {
-  const list = new KastenList()
+test("note list should work in complex path", () => {
+  const list = new NoteList()
   const name = "abc/def ghi.md"
   const url = "/abc/def%20ghi"
   const id = "def ghi"
@@ -29,14 +29,14 @@ test("kasten list should work in complex path", () => {
   })
 })
 
-test("kasten list should work when path is index.md", () => {
-  const list = new KastenList()
-  const kasten: Kasten = {
+test("note list should work when path is index.md", () => {
+  const list = new NoteList()
+  const note: Note = {
     fileName: "tai/bau/index.md",
     urlPath: "/tai/bau/"
   }
   const id = "bau"
 
-  list.addFile(kasten.fileName)
-  expect(list.getById(id)).toEqual(kasten)
+  list.addFile(note.fileName)
+  expect(list.getById(id)).toEqual(note)
 })

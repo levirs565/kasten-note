@@ -1,6 +1,6 @@
 import chokidar from "chokidar"
 import fs from "fs"
-import { KastenList } from "./base"
+import { NoteList } from "./base"
 import * as util from "./util"
 import * as pipeline from "./pipeline"
 
@@ -9,7 +9,7 @@ export default class Builder {
   clean: boolean
   watch: boolean
   onUpdate!: (fileName: string) => void
-  kastenList = new KastenList()
+  noteList = new NoteList()
   pendingBuild = new Array<string>()
   isReady = false
   onAfterReady!: () => void
@@ -26,7 +26,7 @@ export default class Builder {
   }
 
   private async rebuild(path: string) {
-    await pipeline.buildMarkdown(this.kastenDir, path, this.kastenList)
+    await pipeline.buildMarkdown(this.kastenDir, path, this.noteList)
     this.maybeUpdate(util.getDistName(path))
   }
 
@@ -37,7 +37,7 @@ export default class Builder {
 
   private onAdd(p: string) {
     console.log(`${p} is added`)
-    this.kastenList.addFile(p)
+    this.noteList.addFile(p)
     if (this.isReady)
       this.rebuild(p)
     else this.pendingBuild.push(p)
@@ -45,7 +45,7 @@ export default class Builder {
 
   private onUnlink(p: string) {
     console.log(`${p} is removed.`)
-    this.kastenList.removeFile(p)
+    this.noteList.removeFile(p)
     fs.unlinkSync(util.getDistFile(this.kastenDir, p))
     this.maybeUpdate(util.getDistName(p))
   }
@@ -53,7 +53,7 @@ export default class Builder {
   onReady = async () => {
     this.isReady = true
     console.log("Builder is ready now")
-    console.log(`Wiki links is: ${JSON.stringify(this.kastenList)}`)
+    console.log(`Wiki links is: ${JSON.stringify(this.noteList)}`)
     for (const file of this.pendingBuild) {
       await this.rebuild(file)
     }
