@@ -8,6 +8,7 @@ import gfm from "remark-gfm"
 import math from "remark-math"
 import { wikiLinkPlugin } from "remark-wiki-link"
 import remark2rehype from "remark-rehype"
+import raw from "rehype-raw"
 import katex from "rehype-katex"
 import document from "rehype-document"
 import html from "rehype-stringify"
@@ -31,7 +32,8 @@ export async function buildMarkdown(dir: string, fileRel: string, noteList: Note
         noteList.getById(name)?.urlPath
       ]
     })
-    .use(remark2rehype)
+    .use(remark2rehype, {allowDangerousHtml: true})
+    .use(raw)
     .use(katex)
     .use(document, {
       css: ["https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css"]
