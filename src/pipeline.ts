@@ -14,6 +14,23 @@ import document from "rehype-document"
 import html from "rehype-stringify"
 import vfile from "to-vfile"
 import reporter from "vfile-reporter"
+import visit from "unist-util-visit"
+import mdastToString from "mdast-util-to-string"
+
+function analyzerAttacker(doc: document.Options) {
+  return analyzer
+
+  function analyzer(tree: any, file: any) {
+    visit(tree, "heading", visitor)
+
+  }
+
+  function visitor(node: any, index: number, parent: any) {
+    if (node.depth == 1) {
+      doc.title = mdastToString(node)
+    }
+  }
+}
 
 /**
  * dir: Kasten root dir
@@ -22,6 +39,9 @@ import reporter from "vfile-reporter"
 export async function buildMarkdown(dir: string, fileRel: string, noteList: NoteList) {
   const file = path.join(dir, fileRel)
   const distFile = util.getDistFile(dir, fileRel)
+  const docSettings: document.Options = {
+    css: ["https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css"],
+  }
   const processor = unified()
     .use(markdown)
     .use(gfm)
@@ -32,12 +52,11 @@ export async function buildMarkdown(dir: string, fileRel: string, noteList: Note
         noteList.getById(name)?.urlPath
       ]
     })
-    .use(remark2rehype, {allowDangerousHtml: true})
+    .use(analyzerAttacker, docSettings)
+    .use(remark2rehype, { allowDangerousHtml: true })
     .use(raw)
     .use(katex)
-    .use(document, {
-      css: ["https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css"]
-    })
+    .use(document, docSettings)
     .use(html)
 
   const resultFile = await processor.process(await vfile.read(file))
