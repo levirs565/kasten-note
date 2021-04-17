@@ -1,6 +1,6 @@
 import { NoteList } from "./base"
 import { watchNotes } from "./util"
-import { join, basename, dirname } from "path"
+import { join, dirname } from "path"
 import { writeFileSync, mkdirSync } from "fs"
 
 export function listNotes(dir: string, onReady: (list: NoteList) => void) {
@@ -16,19 +16,24 @@ export function listNotes(dir: string, onReady: (list: NoteList) => void) {
 
 export function newNote(dir: string, path: string) {
   listNotes(dir, (list) => {
-    const existingNote = list.getByFileName(path)
+    let completePath = path
+    if (["/", "\\"].includes(completePath[completePath.length - 1]))
+      completePath += "index"
+    if (!completePath.endsWith(".md"))
+      completePath += ".md"
+
+    const existingNote = list.getByFileName(completePath)
 
     if (existingNote) {
       console.error(`Error: Note ID is exist in ${existingNote.fileName}`)
       return
     }
 
-    let fileName = join(dir, path)
-    if (!path.endsWith(".md"))
-      fileName += ".md"
-
-    const content = `# ${basename(path)}\n`
+    const note = list.addFile(completePath)
+    const fileName = join(dir, completePath)
+    const content = `# ${note}\n`
     const fileDir = dirname(fileName)
+
     mkdirSync(fileDir, { recursive: true })
     writeFileSync(fileName, content)
   })
