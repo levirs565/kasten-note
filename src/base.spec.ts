@@ -9,7 +9,7 @@ test("note list shold work in simple path", () => {
   }
 
   expect(list.getById(note.id)).toBeUndefined()
-  list.addFile(note.fileName)
+  expect(list.addFile(note.fileName)).toEqual(note.id)
   expect(list.getById(note.id)).toEqual(note)
   expect(list.getByFileName(note.fileName)).toEqual(note)
   list.removeFile(note.fileName)

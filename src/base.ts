@@ -37,6 +37,7 @@ export class NoteList {
       fileName: fileName,
       urlPath: getFileUrl(fileName)
     }
+    return id
   }
 
   removeFile(fileName: string) {
