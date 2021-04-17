@@ -44,6 +44,10 @@ export class NoteList {
     return this.maps[id]
   }
 
+  getByFileName(fileName: string) {
+    return this.getById(getFileId(fileName))
+  }
+
   getAll() {
     return this.maps
   }

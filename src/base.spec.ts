@@ -2,17 +2,17 @@ import { NoteList, Note } from "./base"
 
 test("note list shold work in simple path", () => {
   const list = new NoteList()
-  const fname1 = "Yap.md"
-  const url1 = "/Yap"
+  const note: Note = {
+    fileName: "Yap.md",
+    urlPath: "/Yap"
+  }
   const id1 = "Yap"
 
   expect(list.getById(id1)).toBeUndefined()
-  list.addFile(fname1)
-  expect(list.getById(id1)).toEqual({
-    fileName: fname1,
-    urlPath: url1
-  })
-  list.removeFile(fname1)
+  list.addFile(note.fileName)
+  expect(list.getById(id1)).toEqual(note)
+  expect(list.getByFileName(note.fileName)).toEqual(note)
+  list.removeFile(note.fileName)
   expect(list.getById(id1)).toBeUndefined()
 })
 
