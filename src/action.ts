@@ -1,7 +1,7 @@
 import { NoteList } from "./base"
 import { watchNotes } from "./util"
 import { join, dirname } from "path"
-import { writeFileSync, mkdirSync } from "fs"
+import { writeFileSync, mkdirSync, unlinkSync, copyFileSync } from "fs"
 
 export function listNotes(dir: string, onReady: (list: NoteList) => void) {
   const list = new NoteList()
@@ -29,12 +29,36 @@ export function newNote(dir: string, path: string) {
       return
     }
 
-    const note = list.addFile(completePath)
+    const id = list.addFile(completePath)
     const fileName = join(dir, completePath)
-    const content = `# ${note}\n`
+    const content = `# ${id}\n`
     const fileDir = dirname(fileName)
 
     mkdirSync(fileDir, { recursive: true })
     writeFileSync(fileName, content)
+  })
+}
+
+export function renameNote(dir: string, oldName: string, newName: string) {
+  listNotes(dir, (list) => {
+    const oldNote = list.getById(oldName)
+    if (!oldNote) {
+      console.error(`Error: Note with id ${oldName} is not exist`)
+      return
+    }
+    const newNote = list.getById(newName)
+    if (newNote) {
+      console.error(`Error: Note with id ${newName} already exist in ${newNote.fileName}}`)
+      return
+    }
+
+    const oldRelDir = dirname(oldNote.fileName) 
+    const oldPath = join(dir, oldNote.fileName)
+    const newPath = join(dir, oldRelDir, newName + ".md")
+
+    console.log(`Moving from ${oldPath} to ${newPath}`)
+
+    copyFileSync(oldNote.fileName, newPath)
+    unlinkSync(oldNote.fileName)
   })
 }

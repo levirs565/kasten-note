@@ -2,7 +2,7 @@ import { program } from "commander"
 import { getCurrentDir } from "./util"
 import Builder from "./builder"
 import Server from "./server"
-import { listNotes, newNote } from "./action"
+import { listNotes, newNote, renameNote } from "./action"
 import { version } from "../package.json"
 
 program
@@ -65,6 +65,14 @@ program.command("new")
     console.log(`Creating note with name ${path}`)
     const dir = await getCurrentDir()
     newNote(dir, path)
+  })
+
+program.command("rename")
+  .description("rename note")
+  .arguments("<old-id> <new-id>")
+  .action(async (oldId: string, newId: string) => {
+    const dir = await getCurrentDir()
+    renameNote(dir, oldId, newId)
   })
 
 program.parseAsync(process.argv)
