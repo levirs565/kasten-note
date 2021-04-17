@@ -2,6 +2,7 @@ import { getDistName, toUnixPath } from "./util"
 import { basename, dirname } from "path"
 
 export interface Note {
+  id: string
   fileName: string
   urlPath: string
 }
@@ -30,18 +31,20 @@ export class NoteList {
   private maps: NoteIdMap = {}
 
   addFile(fileName: string) {
-    this.maps[getFileId(fileName)] = {
+    const id = getFileId(fileName)
+    this.maps[id.toLowerCase()] = {
+      id,
       fileName: fileName,
       urlPath: getFileUrl(fileName)
     }
   }
 
   removeFile(fileName: string) {
-    delete this.maps[getFileId(fileName)]
+    delete this.maps[getFileId(fileName).toLowerCase()]
   }
 
   getById(id: string) {
-    return this.maps[id]
+    return this.maps[id.toLowerCase()]
   }
 
   getByFileName(fileName: string) {
