@@ -2,7 +2,7 @@ import { program } from "commander"
 import { getCurrentDir } from "./util"
 import Builder from "./builder"
 import Server from "./server"
-import { listNotes } from "./action"
+import { listNotes, newNote } from "./action"
 import { version } from "../package.json"
 
 program
@@ -56,6 +56,15 @@ program.command("list")
         console.log(`${id},${note.fileName},${note.urlPath}`)
       }
     })
+  })
+
+program.command("new")
+  .description("create new note")
+  .arguments("<path>")
+  .action(async (path: string) => {
+    console.log(`Creating note with name ${path}`)
+    const dir = await getCurrentDir()
+    newNote(dir, path)
   })
 
 program.parseAsync(process.argv)
