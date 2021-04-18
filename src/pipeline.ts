@@ -40,7 +40,20 @@ export async function buildMarkdown(dir: string, fileRel: string, noteList: Note
   const file = path.join(dir, fileRel)
   const distFile = util.getDistFile(dir, fileRel)
   const docSettings: document.Options = {
-    css: ["https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css"],
+    css: [
+      "https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css",
+      // "https://unpkg.com/mvp.css"
+      "https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
+    ],
+    style: `
+    .katex-display > .katex {
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+    .katex .base {
+      margin-top: 2px;
+      margin-bottom: 2px;
+    }`
   }
   const processor = unified()
     .use(markdown)
