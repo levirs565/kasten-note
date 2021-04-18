@@ -1,5 +1,5 @@
 declare module "to-vfile" {
-  export function read(path: string): Promise<any>
+  export function read(path: any): Promise<any>
   export function write(vfile: any): Promise<void>
 }
 
@@ -12,3 +12,7 @@ declare module "remark-wiki-link" {
 }
 
 declare module "*.json";
+
+declare module "ngraph.tojson" {
+  export default function (graph: any): any
+}

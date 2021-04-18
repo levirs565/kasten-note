@@ -3,6 +3,13 @@ import fs from "fs"
 import { NoteList } from "./base"
 import * as util from "./util"
 import * as pipeline from "./pipeline"
+import { NodeId, default as createGraph } from "ngraph.graph"
+import toJson from "ngraph.tojson"
+import { join } from "path"
+
+function isMarkdown(p: string) {
+  return p.endsWith(".md")
+}
 
 export default class Builder {
   kastenDir: string
@@ -13,6 +20,8 @@ export default class Builder {
   pendingBuild = new Array<string>()
   isReady = false
   onAfterReady!: () => void
+  imgGraph = createGraph()
+  watcher!: chokidar.FSWatcher
 
   constructor(dir: string, clean: boolean, watch: boolean) {
     this.kastenDir = dir
@@ -25,29 +34,71 @@ export default class Builder {
       this.onUpdate(path)
   }
 
-  private async rebuild(path: string) {
-    await pipeline.buildMarkdown(this.kastenDir, path, this.noteList)
-    this.maybeUpdate(util.getDistName(path))
+  private async rebuild(p: string) {
+    const lastImgList: NodeId[] = []
+
+    this.imgGraph.forEachLinkedNode(p, (node, link) => {
+      lastImgList.push(link.toId)
+      this.imgGraph.removeLink(link)
+    }, true)
+
+    await pipeline.buildMarkdown(this.kastenDir, p, this.noteList, this.onImageFound)
+
+    for (const img of lastImgList) {
+      if (this.imgGraph.getLinks(img)!.length > 0)
+        continue
+
+      this.imgGraph.removeNode(img)
+      this.watcher.unwatch(img as string)
+      try {
+        await fs.promises.unlink(join(util.getDistDir(this.kastenDir), img as string))
+      } catch {
+      }
+    }
+
+    this.maybeUpdate(util.getDistName(p))
+  }
+
+  private onImageFound = (md: string, img: string) => {
+    if (!this.imgGraph.hasLink(md, img)) {
+      this.imgGraph.addLink(md, img)
+      this.watcher.add(img)
+    }
   }
 
   private onChange(p: string) {
     console.log(`${p} is changed`)
-    this.rebuild(p)
+    if (isMarkdown(p)) {
+      this.rebuild(p)
+    } else {
+      this.updateAsset(p)
+    }
+  }
+
+  private updateAsset(p: string) {
+    fs.copyFileSync(join(this.kastenDir, p), join(util.getDistDir(this.kastenDir), p))
   }
 
   private onAdd(p: string) {
     console.log(`${p} is added`)
-    this.noteList.addFile(p)
-    if (this.isReady)
-      this.rebuild(p)
-    else this.pendingBuild.push(p)
+
+    if (isMarkdown(p)) {
+      this.noteList.addFile(p)
+      if (this.isReady)
+        this.rebuild(p)
+      else this.pendingBuild.push(p)
+    } else {
+      this.updateAsset(p)
+    }
   }
 
   private onUnlink(p: string) {
     console.log(`${p} is removed.`)
-    this.noteList.removeFile(p)
-    fs.unlinkSync(util.getDistFile(this.kastenDir, p))
-    this.maybeUpdate(util.getDistName(p))
+    if (isMarkdown(p)) {
+      this.noteList.removeFile(p)
+      fs.unlinkSync(util.getDistFile(this.kastenDir, p))
+      this.maybeUpdate(util.getDistName(p))
+    }
   }
 
   onReady = async () => {
@@ -65,7 +116,7 @@ export default class Builder {
     if (this.clean)
       await fs.promises.rmdir(util.getDistDir(this.kastenDir), { recursive: true })
 
-    util.watchNotes(this.kastenDir, this.watch)
+    this.watcher = util.watchNotes(this.kastenDir, this.watch)
       .on("change", this.onChange.bind(this))
       .on("add", this.onAdd.bind(this))
       .on("unlink", this.onUnlink.bind(this))

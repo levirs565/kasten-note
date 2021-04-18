@@ -12,31 +12,50 @@ import raw from "rehype-raw"
 import katex from "rehype-katex"
 import document from "rehype-document"
 import html from "rehype-stringify"
-import vfile from "to-vfile"
+import toVfile from "to-vfile"
 import reporter from "vfile-reporter"
 import visit from "unist-util-visit"
 import mdastToString from "mdast-util-to-string"
+import unist from "unist"
+import { Heading, Image } from "mdast"
+import vfile from "vfile"
 
-function analyzerAttacker(doc: document.Options) {
+type ImageFoundListener = (md: string, img: string) => void
+
+function analyzerAttacker(doc: document.Options, onImageFound: ImageFoundListener) {
   return analyzer
 
-  function analyzer(tree: any, file: any) {
-    visit(tree, "heading", visitor)
+  function analyzer(tree: unist.Node, file: vfile.VFile) {
+    visit(tree, ["heading", "image"], visitor)
 
-  }
+    function visitor(node: unist.Node, index: number, parent: unist.Node | undefined) {
+      if (node.type == "heading") {
+        if ((node as Heading).depth == 1) {
+          doc.title = mdastToString(node)
+        }
+      } else if (node.type == "image") {
+        const image = node as Image
+        if (image.url.indexOf("://") >= 0)
+          return
 
-  function visitor(node: any, index: number, parent: any) {
-    if (node.depth == 1) {
-      doc.title = mdastToString(node)
+        let imgPath = image.url
+        if (imgPath[0] == '/')
+          imgPath = imgPath.substring(1)
+        else
+          imgPath = path.join(file.dirname!!, imgPath)
+        imgPath = path.normalize(imgPath)
+        onImageFound(file.path!, imgPath)
+      }
     }
   }
+
 }
 
 /**
  * dir: Kasten root dir
  * fileRel: file name relative to root dir with extension
  */
-export async function buildMarkdown(dir: string, fileRel: string, noteList: NoteList) {
+export async function buildMarkdown(dir: string, fileRel: string, noteList: NoteList, onImageFound: ImageFoundListener) {
   const file = path.join(dir, fileRel)
   const distFile = util.getDistFile(dir, fileRel)
   const docSettings: document.Options = {
@@ -65,17 +84,19 @@ export async function buildMarkdown(dir: string, fileRel: string, noteList: Note
         noteList.getById(name)?.urlPath
       ]
     })
-    .use(analyzerAttacker, docSettings)
+    .use(analyzerAttacker, docSettings, onImageFound)
     .use(remark2rehype, { allowDangerousHtml: true })
     .use(raw)
     .use(katex)
     .use(document, docSettings)
     .use(html)
 
-  const resultFile = await processor.process(await vfile.read(file))
+  const resultFile = await processor.process(
+    await toVfile.read({ path: fileRel, cwd: dir })
+  )
   console.log(reporter(resultFile))
   resultFile.path = distFile
 
   await fs.mkdir(resultFile.dirname as string, { recursive: true })
-  await vfile.write(resultFile)
+  await toVfile.write(resultFile)
 }

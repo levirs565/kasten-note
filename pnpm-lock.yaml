@@ -3,6 +3,8 @@ dependencies:
   commander: 7.2.0
   express: 4.17.1
   mdast-util-to-string: 2.0.0
+  ngraph.graph: 19.1.0
+  ngraph.tojson: 1.0.1
   rehype-document: 5.1.0
   rehype-katex: 4.0.0
   rehype-raw: 5.1.0
@@ -25,6 +27,7 @@ devDependencies:
   jest: 26.6.3
   ts-jest: 26.5.4_jest@26.6.3+typescript@4.2.4
   typescript: 4.2.4
+  vfile: 4.2.1
 lockfileVersion: 5.2
 packages:
   /@babel/code-frame/7.12.13:
@@ -693,7 +696,6 @@ packages:
     resolution:
       integrity: sha512-RJJrrySY7A8havqpGObOB4W92QXKJo63/jFLLgpvOtsGUqbQZ9Sbgl35KMm1DjC6j7AvmmU2bIno+3IyEaemaw==
   /@types/unist/2.0.3:
-    dev: false
     resolution:
       integrity: sha512-FvUupuM3rlRsRtCN+fDudtmytGO6iHJuuRKS1Ss0pG5z8oX0diNEw94UEL7hgDbpN94rgaK5R7sWm6RrSkZuAQ==
   /@types/ws/7.4.1:
@@ -2264,7 +2266,6 @@ packages:
     resolution:
       integrity: sha512-NcdALwpXkTm5Zvvbk7owOUSvVvBKDgKP5/ewfXEznmQFfs4ZRmanOeKBTjRVjka3QFoN6XJ+9F3USqfHqTaU5w==
   /is-buffer/2.0.5:
-    dev: false
     engines:
       node: '>=4'
     resolution:
@@ -3458,6 +3459,20 @@ packages:
       node: '>= 0.6'
     resolution:
       integrity: sha512-hZXc7K2e+PgeI1eDBe/10Ard4ekbfrrqG8Ep+8Jmf4JID2bNg7NvCPOZN+kfF574pFQI7mum2AUqDidoKqcTOw==
+  /ngraph.events/1.2.1:
+    dev: false
+    resolution:
+      integrity: sha512-D4C+nXH/RFxioGXQdHu8ELDtC6EaCiNsZtih0IvyGN81OZSUby4jXoJ5+RNWasfsd0FnKxxpAROyUMzw64QNsw==
+  /ngraph.graph/19.1.0:
+    dependencies:
+      ngraph.events: 1.2.1
+    dev: false
+    resolution:
+      integrity: sha512-9cws84qfPkrYa7BaBtT+KgZfLXrd6pNL9Gl5Do+MBO/0Hm6rOM7qK78MZaO1uEoIK6p2pgUs6lu29zn/6tP59w==
+  /ngraph.tojson/1.0.1:
+    dev: false
+    resolution:
+      integrity: sha512-4kQ8b7uNkryGrduHZxRhGT5epfkmJabeJa2O1mG9m2k2OGsAYcfMWnfFZ2F0NUlyx2Su9hKhRkfn75/gqa9rLg==
   /nice-try/1.0.5:
     dev: true
     resolution:
@@ -4711,7 +4726,6 @@ packages:
   /unist-util-stringify-position/2.0.3:
     dependencies:
       '@types/unist': 2.0.3
-    dev: false
     resolution:
       integrity: sha512-3faScn5I+hy9VleOq/qNbAd6pAx7iH5jYBMS9I1HgQVijz/4mv5Bvw5iw1sC/90CODiKo81G/ps8AJrISn687g==
   /unist-util-visit-parents/3.1.1:
@@ -4825,7 +4839,6 @@ packages:
     dependencies:
       '@types/unist': 2.0.3
       unist-util-stringify-position: 2.0.3
-    dev: false
     resolution:
       integrity: sha512-DjssxRGkMvifUOJre00juHoP9DPWuzjxKuMDrhNbk2TdaYYBNMStsNhEOt3idrtI12VQYM/1+iM0KOzXi4pxwQ==
   /vfile-reporter/6.0.2:
@@ -4853,7 +4866,6 @@ packages:
       is-buffer: 2.0.5
       unist-util-stringify-position: 2.0.3
       vfile-message: 2.0.4
-    dev: false
     resolution:
       integrity: sha512-O6AE4OskCG5S1emQ/4gl8zK586RqA3srz3nfK/Viy0UPToBc5Trp9BVFb1u0CjsKrAWwnpr4ifM/KBXPWwJbCA==
   /w3c-hr-time/1.0.2:
@@ -5043,6 +5055,8 @@ specifiers:
   express: ^4.17.1
   jest: ^26.6.3
   mdast-util-to-string: ^2.0.0
+  ngraph.graph: ^19.1.0
+  ngraph.tojson: ^1.0.1
   rehype-document: ^5.1.0
   rehype-katex: ^4.0.0
   rehype-raw: ^5.1.0
@@ -5057,5 +5071,6 @@ specifiers:
   typescript: ^4.2.4
   unified: ^9.2.1
   unist-util-visit: ^2.0.3
+  vfile: ^4.2.1
   vfile-reporter: ^6.0.2
   ws: ^7.4.4
