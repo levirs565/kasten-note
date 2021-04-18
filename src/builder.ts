@@ -1,5 +1,5 @@
 import chokidar from "chokidar"
-import fs from "fs"
+import fs from "fs-extra"
 import { NoteList } from "./base"
 import * as util from "./util"
 import * as pipeline from "./pipeline"
@@ -51,7 +51,7 @@ export default class Builder {
       this.imgGraph.removeNode(img)
       this.watcher.unwatch(img as string)
       try {
-        await fs.promises.unlink(join(util.getDistDir(this.kastenDir), img as string))
+        this.removeAsset(img as string)
       } catch {
       }
     }
@@ -76,7 +76,11 @@ export default class Builder {
   }
 
   private updateAsset(p: string) {
-    fs.copyFileSync(join(this.kastenDir, p), join(util.getDistDir(this.kastenDir), p))
+    fs.copySync(join(this.kastenDir, p), join(util.getDistDir(this.kastenDir), p))
+  }
+
+  private removeAsset(p: string) {
+    fs.removeSync(join(util.getDistDir(this.kastenDir), p))
   }
 
   private onAdd(p: string) {
@@ -96,8 +100,10 @@ export default class Builder {
     console.log(`${p} is removed.`)
     if (isMarkdown(p)) {
       this.noteList.removeFile(p)
-      fs.unlinkSync(util.getDistFile(this.kastenDir, p))
+      fs.removeSync(util.getDistFile(this.kastenDir, p))
       this.maybeUpdate(util.getDistName(p))
+    } else {
+      this.removeAsset(p)
     }
   }
 
@@ -114,7 +120,7 @@ export default class Builder {
 
   async run() {
     if (this.clean)
-      await fs.promises.rmdir(util.getDistDir(this.kastenDir), { recursive: true })
+      await fs.emptyDir(util.getDistDir(this.kastenDir))
 
     this.watcher = util.watchNotes(this.kastenDir, this.watch)
       .on("change", this.onChange.bind(this))
