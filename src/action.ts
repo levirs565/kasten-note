@@ -51,12 +51,21 @@ export function renameNote(dir: string, oldName: string, newName: string) {
       return
     }
 
-    const oldRelDir = dirname(oldNote.fileName) 
+    const oldRelDir = dirname(oldNote.fileName)
     const oldPath = join(dir, oldNote.fileName)
+
+    if (oldNote.fileName.endsWith("index.md")) {
+      const fromPath = dirname(oldPath)
+      const newPath = join(dir, dirname(oldRelDir), newName)      
+      
+      console.log(`Moving from ${fromPath} to ${newPath}`)
+      fs.move(fromPath, newPath)
+      return
+    }
+
     const newPath = join(dir, oldRelDir, newName + ".md")
 
     console.log(`Moving from ${oldPath} to ${newPath}`)
-
     fs.moveSync(oldNote.fileName, newPath)
   })
 }
