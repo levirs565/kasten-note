@@ -35,6 +35,7 @@ export default class Builder {
   }
 
   private async rebuild(p: string) {
+    console.log(`Building ${p}`)
     const lastImgList: NodeId[] = []
 
     this.imgGraph.forEachLinkedNode(p, (node, link) => {
@@ -56,54 +57,68 @@ export default class Builder {
       }
     }
 
+    this.notifyPageChanged(p)
+  }
+  notifyPageChanged(p: string) {
     this.maybeUpdate(util.getDistName(p))
   }
 
   private onImageFound = (md: string, img: string) => {
     if (!this.imgGraph.hasLink(md, img)) {
       this.imgGraph.addLink(md, img)
-      this.watcher.add(img)
+      this.updateAsset(img)
     }
   }
 
   private onChange(p: string) {
-    console.log(`${p} is changed`)
     if (isMarkdown(p)) {
       this.rebuild(p)
-    } else {
+    } else if (this.isAsset(p)) {
       this.updateAsset(p)
+      this.notifyAssetChanged(p)
     }
   }
 
+  private isAsset(p: string) {
+    return this.imgGraph.hasNode(p)
+  }
+
+  private notifyAssetChanged(path: string) {
+    this.imgGraph.forEachLinkedNode(path, (node, link) => {
+      this.notifyPageChanged(node.id as string)
+    }, false)
+  }
+
   private updateAsset(p: string) {
+    console.log(`Updating asset ${p}`)
     fs.copySync(join(this.kastenDir, p), join(util.getDistDir(this.kastenDir), p))
   }
 
   private removeAsset(p: string) {
+    console.log(`Removing asset ${p}`)
     fs.removeSync(join(util.getDistDir(this.kastenDir), p))
   }
 
   private onAdd(p: string) {
-    console.log(`${p} is added`)
-
     if (isMarkdown(p)) {
       this.noteList.addFile(p)
       if (this.isReady)
         this.rebuild(p)
       else this.pendingBuild.push(p)
-    } else {
+    } else if (this.isAsset(p)) {
       this.updateAsset(p)
+      this.notifyAssetChanged(p)
     }
   }
 
   private onUnlink(p: string) {
-    console.log(`${p} is removed.`)
     if (isMarkdown(p)) {
       this.noteList.removeFile(p)
       fs.removeSync(util.getDistFile(this.kastenDir, p))
       this.maybeUpdate(util.getDistName(p))
-    } else {
+    } else if (this.isAsset(p)) {
       this.removeAsset(p)
+      this.notifyAssetChanged(p)
     }
   }
 
@@ -122,7 +137,11 @@ export default class Builder {
     if (this.clean)
       await fs.emptyDir(util.getDistDir(this.kastenDir))
 
-    this.watcher = util.watchNotes(this.kastenDir, this.watch)
+    this.watcher = chokidar.watch("**/*", {
+      cwd: this.kastenDir,
+      persistent: this.watch,
+      ignored: util.excludedFiles
+    })
       .on("change", this.onChange.bind(this))
       .on("add", this.onAdd.bind(this))
       .on("unlink", this.onUnlink.bind(this))
