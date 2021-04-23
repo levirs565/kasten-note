@@ -1,5 +1,5 @@
 import path from "path"
-import { promises as fs } from "fs"
+import fs from "fs-extra"
 import { NoteList } from "./base"
 import * as util from "./util"
 import unified from "unified"
@@ -97,6 +97,6 @@ export async function buildMarkdown(dir: string, fileRel: string, noteList: Note
   console.log(reporter(resultFile))
   resultFile.path = distFile
 
-  await fs.mkdir(resultFile.dirname as string, { recursive: true })
+  await fs.ensureFile(resultFile.path)
   await toVfile.write(resultFile)
 }

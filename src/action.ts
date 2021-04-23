@@ -1,7 +1,7 @@
 import { NoteList } from "./base"
 import { watchNotes } from "./util"
 import { join, dirname } from "path"
-import { writeFileSync, mkdirSync, unlinkSync, copyFileSync } from "fs"
+import fs from "fs-extra"
 
 export function listNotes(dir: string, onReady: (list: NoteList) => void) {
   const list = new NoteList()
@@ -32,10 +32,9 @@ export function newNote(dir: string, path: string) {
     const id = list.addFile(completePath)
     const fileName = join(dir, completePath)
     const content = `# ${id}\n`
-    const fileDir = dirname(fileName)
 
-    mkdirSync(fileDir, { recursive: true })
-    writeFileSync(fileName, content)
+    fs.ensureFileSync(fileName)
+    fs.writeFileSync(fileName, content)
   })
 }
 
@@ -58,7 +57,6 @@ export function renameNote(dir: string, oldName: string, newName: string) {
 
     console.log(`Moving from ${oldPath} to ${newPath}`)
 
-    copyFileSync(oldNote.fileName, newPath)
-    unlinkSync(oldNote.fileName)
+    fs.moveSync(oldNote.fileName, newPath)
   })
 }

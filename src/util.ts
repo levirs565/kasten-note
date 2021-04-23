@@ -1,5 +1,5 @@
 import path from "path"
-import fs from "fs"
+import fs from "fs-extra"
 import chokidar from "chokidar"
 
 export const excludedFiles = ["dist/**", "**/.git/**"]
@@ -13,7 +13,7 @@ export async function getCurrentDir() {
     const dir = dirs.slice(0, i).join(path.sep)
     const configFile = path.join(dir, configFileName)
     try {
-      const fileStat = await fs.promises.stat(configFile)
+      const fileStat = await fs.stat(configFile)
       if (fileStat.isFile()) {
         currentDir = dir
         break

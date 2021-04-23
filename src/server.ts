@@ -1,7 +1,7 @@
 import express from "express"
 import ws from "ws"
 import path from "path"
-import { promises as fs } from "fs"
+import fs from "fs-extra"
 import * as util from "./util"
 
 export default class Server {
