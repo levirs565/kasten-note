@@ -2,6 +2,14 @@
 ## [Unreleased]
 
 
+<a name="v0.2.1"></a>
+## [v0.2.1] - 2021-05-25
+- bump version
+- fix: bin script not work in unix
+- bump version to 0.2.0
+- add change log
+
+
 <a name="v0.2.0"></a>
 ## [v0.2.0] - 2021-04-23
 - fix asset is not updated after deleted and notify page when asset changed
@@ -75,5 +83,6 @@
 - add find kasten dir functionality
 
 
-[Unreleased]: https://github.com/levirs565/kasten-note/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/levirs565/kasten-note/compare/v0.2.1...HEAD
+[v0.2.1]: https://github.com/levirs565/kasten-note/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/levirs565/kasten-note/compare/v0.1.0...v0.2.0
