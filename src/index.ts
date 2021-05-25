@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { program } from "commander"
 import { getCurrentDir } from "./util"
 import Builder from "./builder"
