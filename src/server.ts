@@ -2,11 +2,14 @@ import express from "express"
 import ws from "ws"
 import path from "path"
 import fs from "fs-extra"
+import { promisify } from "util"
+import { Server as HTTPServer } from "http"
 import * as util from "./util"
 
 export default class Server {
   kastenDir: string
   distDir: string
+  server!: HTTPServer
   wsServer!: ws.Server
 
   constructor(dir: string) {
@@ -57,11 +60,11 @@ export default class Server {
     app.use(express.static(clientDir))
     app.get("*", this.sendDistFile)
 
-    const server = app.listen(8080, () => {
+    this.server = app.listen(8080, () => {
       console.log("Server is started at port 8080")
     })
     this.wsServer = new ws.Server({
-      server: server
+      server: this.server
     })
   }
 
@@ -72,6 +75,11 @@ export default class Server {
         client.send(path)
       }
     }
+  }
+
+  async stop() {
+    await promisify(this.wsServer.close).call(this.wsServer)
+    await promisify(this.server.close).call(this.server)
   }
 }
 

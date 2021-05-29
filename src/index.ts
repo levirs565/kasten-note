@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 import { program } from "commander"
 import { getCurrentDir } from "./util"
-import Builder from "./builder"
-import Server from "./server"
-import { listNotes, newNote, renameNote, BuildAction } from "./action"
+import { listNotes, newNote, renameNote, BuildAction, ServeAction } from "./action"
 import { version } from "../package.json"
 
 program
@@ -33,13 +31,7 @@ program.command("serve")
   .description("build and serve notes")
   .option(cleanOpt[0], cleanOpt[1])
   .action(async (opts: ServeOpts) => {
-    const dir = await getCurrentDir()
-    const builder = new Builder(dir, opts.clean, true)
-    const server = new Server(dir)
-
-    builder.onUpdate = server.notifyUpdate
-    builder.onAfterReady = server.run.bind(server)
-    builder.run()
+    new ServeAction(opts.clean, await getCurrentDir()).run()
   })
 
 program.command("list")

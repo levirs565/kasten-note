@@ -1,6 +1,7 @@
 import { NoteList } from "./base"
 import { watchNotes } from "./util"
 import Builder from "./builder"
+import Server from "./server"
 import { join, dirname } from "path"
 import { terminal } from "terminal-kit"
 import fs from "fs-extra"
@@ -104,12 +105,39 @@ export class BuildAction {
       await this.start()
   }
 
+  protected beforeRun() {
+  }
+
   protected async start() {
     this.builder = new Builder(this.dir, this.clean, this.watch)
+    this.beforeRun()
     await this.builder.run()
   }
 
   protected async stop() {
     await this.builder.stop()
+  }
+}
+
+export class ServeAction extends BuildAction {
+  server!: Server
+
+  constructor(clean: boolean, dir: string) {
+    super(true, clean, dir)
+  }
+
+  protected beforeRun() {
+    this.builder.onUpdate = this.server.notifyUpdate
+    this.builder.onAfterReady = this.server.run.bind(this.server)
+  }
+
+  protected async start() {
+    this.server = new Server(this.dir) 
+    await super.start()
+  }
+
+  protected async stop() {
+    await super.stop()
+    await this.server.stop()
   }
 }
