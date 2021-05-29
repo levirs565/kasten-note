@@ -11,6 +11,7 @@ function isMarkdown(p: string) {
   return p.endsWith(".md")
 }
 
+
 export default class Builder {
   kastenDir: string
   clean: boolean
@@ -34,16 +35,16 @@ export default class Builder {
       this.onUpdate(path)
   }
 
-  private async rebuild(p: string) {
-    console.log(`Building ${p}`)
+  private async rebuild(path: string) {
+    console.log(`Building ${path}`)
     const lastImgList: NodeId[] = []
 
-    this.imgGraph.forEachLinkedNode(p, (node, link) => {
+    this.imgGraph.forEachLinkedNode(path, (node, link) => {
       lastImgList.push(link.toId)
       this.imgGraph.removeLink(link)
     }, true)
 
-    await pipeline.buildMarkdown(this.kastenDir, p, this.noteList, this.onImageFound)
+    await pipeline.buildMarkdown(this.kastenDir, path, this.noteList, this.onImageFound)
 
     for (const img of lastImgList) {
       if (this.imgGraph.getLinks(img)!.length > 0)
@@ -57,10 +58,10 @@ export default class Builder {
       }
     }
 
-    this.notifyPageChanged(p)
+    this.notifyPageChanged(path)
   }
-  notifyPageChanged(p: string) {
-    this.maybeUpdate(util.getDistName(p))
+  notifyPageChanged(path: string) {
+    this.maybeUpdate(util.getDistName(path))
   }
 
   private onImageFound = (md: string, img: string) => {
@@ -70,17 +71,17 @@ export default class Builder {
     }
   }
 
-  private onChange(p: string) {
-    if (isMarkdown(p)) {
-      this.rebuild(p)
-    } else if (this.isAsset(p)) {
-      this.updateAsset(p)
-      this.notifyAssetChanged(p)
+  private onChange(path: string) {
+    if (isMarkdown(path)) {
+      this.rebuild(path)
+    } else if (this.isAsset(path)) {
+      this.updateAsset(path)
+      this.notifyAssetChanged(path)
     }
   }
 
-  private isAsset(p: string) {
-    return this.imgGraph.hasNode(p)
+  private isAsset(path: string) {
+    return this.imgGraph.hasNode(path)
   }
 
   private notifyAssetChanged(path: string) {
@@ -89,36 +90,36 @@ export default class Builder {
     }, false)
   }
 
-  private updateAsset(p: string) {
-    console.log(`Updating asset ${p}`)
-    fs.copySync(join(this.kastenDir, p), join(util.getDistDir(this.kastenDir), p))
+  private updateAsset(path: string) {
+    console.log(`Updating asset ${path}`)
+    fs.copySync(join(this.kastenDir, path), join(util.getDistDir(this.kastenDir), path))
   }
 
-  private removeAsset(p: string) {
-    console.log(`Removing asset ${p}`)
-    fs.removeSync(join(util.getDistDir(this.kastenDir), p))
+  private removeAsset(path: string) {
+    console.log(`Removing asset ${path}`)
+    fs.removeSync(join(util.getDistDir(this.kastenDir), path))
   }
 
-  private onAdd(p: string) {
-    if (isMarkdown(p)) {
-      this.noteList.addFile(p)
+  private onAdd(path: string) {
+    if (isMarkdown(path)) {
+      this.noteList.addFile(path)
       if (this.isReady)
-        this.rebuild(p)
-      else this.pendingBuild.push(p)
-    } else if (this.isAsset(p)) {
-      this.updateAsset(p)
-      this.notifyAssetChanged(p)
+        this.rebuild(path)
+      else this.pendingBuild.push(path)
+    } else if (this.isAsset(path)) {
+      this.updateAsset(path)
+      this.notifyAssetChanged(path)
     }
   }
 
-  private onUnlink(p: string) {
-    if (isMarkdown(p)) {
-      this.noteList.removeFile(p)
-      fs.removeSync(util.getDistFile(this.kastenDir, p))
-      this.maybeUpdate(util.getDistName(p))
-    } else if (this.isAsset(p)) {
-      this.removeAsset(p)
-      this.notifyAssetChanged(p)
+  private onUnlink(path: string) {
+    if (isMarkdown(path)) {
+      this.noteList.removeFile(path)
+      fs.removeSync(util.getDistFile(this.kastenDir, path))
+      this.maybeUpdate(util.getDistName(path))
+    } else if (this.isAsset(path)) {
+      this.removeAsset(path)
+      this.notifyAssetChanged(path)
     }
   }
 
@@ -146,5 +147,9 @@ export default class Builder {
       .on("add", this.onAdd.bind(this))
       .on("unlink", this.onUnlink.bind(this))
       .on("ready", this.onReady)
+  }
+
+  async stop() {
+    await this.watcher.close()
   }
 }
