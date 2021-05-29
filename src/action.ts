@@ -1,6 +1,8 @@
 import { NoteList } from "./base"
 import { watchNotes } from "./util"
+import Builder from "./builder"
 import { join, dirname } from "path"
+import { terminal } from "terminal-kit"
 import fs from "fs-extra"
 
 export function listNotes(dir: string, onReady: (list: NoteList) => void) {
@@ -68,4 +70,46 @@ export function renameNote(dir: string, oldName: string, newName: string) {
     console.log(`Moving from ${oldPath} to ${newPath}`)
     fs.moveSync(oldNote.fileName, newPath)
   })
+}
+
+export class BuildAction {
+  watch: boolean
+  clean: boolean
+  builder!: Builder
+  dir: string
+
+  constructor(watch: boolean, clean: boolean, dir: string) {
+    this.watch = watch
+    this.clean = clean
+    this.dir = dir
+  }
+
+  async run() {
+    if (this.watch)
+      terminal("Press CTRL-R for full rebuild\n")
+
+    await this.start()
+
+    if (this.watch) {
+      terminal.grabInput(true)
+      terminal.on("key", this.onKey)
+    }
+  }
+
+  private onKey = async (key: string) => {
+      if (key == "CTRL_C") terminal.processExit(0)
+      if (key != "CTRL_R") return
+
+      await this.stop()
+      await this.start()
+  }
+
+  protected async start() {
+    this.builder = new Builder(this.dir, this.clean, this.watch)
+    await this.builder.run()
+  }
+
+  protected async stop() {
+    await this.builder.stop()
+  }
 }

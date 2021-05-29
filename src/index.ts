@@ -3,9 +3,8 @@ import { program } from "commander"
 import { getCurrentDir } from "./util"
 import Builder from "./builder"
 import Server from "./server"
-import { listNotes, newNote, renameNote } from "./action"
+import { listNotes, newNote, renameNote, BuildAction } from "./action"
 import { version } from "../package.json"
-import { terminal } from "terminal-kit"
 
 program
   .name("kasten")
@@ -14,8 +13,8 @@ program
 const cleanOpt = ["--no-clean", "clean dist directory before build"]
 
 interface BuildOpts {
-  clean: boolean
   watch: boolean
+  clean: boolean
 }
 
 program.command("build")
@@ -23,24 +22,7 @@ program.command("build")
   .option(cleanOpt[0], cleanOpt[1])
   .option("-w, --watch", "watch directory for change", false)
   .action(async (opts: BuildOpts) => {
-    terminal("Press CTRL-R for full rebuild\n")
-    const dir = await getCurrentDir()
-    let builder: Builder | null = null
-    await runBuilder()
-
-    terminal.grabInput(true)
-    terminal.on("key", async (key: string) => {
-      if (key == "CTRL_C") terminal.processExit(0)
-      if (key != "CTRL_R") return
-
-      await builder!.stop()
-      await runBuilder()
-    })
-
-    async function runBuilder() {
-      builder = new Builder(dir, opts.clean, opts.watch)
-      await builder.run()
-    }
+    new BuildAction(opts.watch, opts.clean, await getCurrentDir()).run()
   })
 
 interface ServeOpts {
