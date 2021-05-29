@@ -87,7 +87,7 @@ export class BuildAction {
 
   async run() {
     if (this.watch)
-      terminal("Press CTRL-R for full rebuild\n")
+      terminal.blue("Press CTRL-R for full rebuild\n")
 
     await this.start()
 
