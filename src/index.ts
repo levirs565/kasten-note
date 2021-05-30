@@ -38,7 +38,7 @@ program.command("list")
   .description("list notes")
   .action(async () => {
     const dir = await getCurrentDir()
-    printListNotes(dir)
+    await printListNotes(dir)
   })
 
 program.command("new")
@@ -47,7 +47,7 @@ program.command("new")
   .action(async (path: string) => {
     console.log(`Creating note with name ${path}`)
     const dir = await getCurrentDir()
-    newNote(dir, path)
+    await newNote(dir, path)
   })
 
 program.command("rename")
@@ -55,7 +55,7 @@ program.command("rename")
   .arguments("<old-id> <new-id>")
   .action(async (oldId: string, newId: string) => {
     const dir = await getCurrentDir()
-    renameNote(dir, oldId, newId)
+    await renameNote(dir, oldId, newId)
   })
 
 program.parseAsync(process.argv)

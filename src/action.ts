@@ -6,84 +6,83 @@ import { join, dirname } from "path"
 import { terminal } from "terminal-kit"
 import fs from "fs-extra"
 
-function listNotes(dir: string, onReady: (list: NoteList) => void) {
-  const list = new NoteList()
-  watchNotes(dir, false)
-    .on("add", (path) => {
-      list.addFile(path)
-    })
-    .on("ready", () => {
-      onReady(list)
-    })
-}
-
-export function printListNotes(dir: string) {
-  listNotes(dir, (list) => {
-    const table = [
-      ["ID", "Path", "URL"]
-    ]
-    for (const id in list.getAll()) {
-      const note = list.getById(id)!
-      table.push([note.id, note.fileName, note.urlPath])
-    }
-    printTable(table)
+function listNotes(dir: string) {
+  return new Promise<NoteList>((resolve) => {
+    const list = new NoteList()
+    watchNotes(dir, false)
+      .on("add", (path) => {
+        list.addFile(path)
+      })
+      .on("ready", () => {
+        resolve(list)
+      })
   })
 }
 
-export function newNote(dir: string, path: string) {
-  listNotes(dir, (list) => {
-    let completePath = path
-    if (["/", "\\"].includes(completePath[completePath.length - 1]))
-      completePath += "index"
-    if (!completePath.endsWith(".md"))
-      completePath += ".md"
-
-    const existingNote = list.getByFileName(completePath)
-
-    if (existingNote) {
-      printError(`Error: Note ID is exist in ${existingNote.fileName}`)
-      return
-    }
-
-    const id = list.addFile(completePath)
-    const fileName = join(dir, completePath)
-    const content = `# ${id}\n`
-
-    fs.ensureFileSync(fileName)
-    fs.writeFileSync(fileName, content)
-  })
+export async function printListNotes(dir: string) {
+  const list = await listNotes(dir)
+  const table = [
+    ["ID", "Path", "URL"]
+  ]
+  for (const id in list.getAll()) {
+    const note = list.getById(id)!
+    table.push([note.id, note.fileName, note.urlPath])
+  }
+  printTable(table)
 }
 
-export function renameNote(dir: string, oldName: string, newName: string) {
-  listNotes(dir, (list) => {
-    const oldNote = list.getById(oldName)
-    if (!oldNote) {
-      printError(`Error: Note with id ${oldName} is not exist`)
-      return
-    }
-    const newNote = list.getById(newName)
-    if (newNote) {
-      printError(`Error: Note with id ${newName} already exist in ${newNote.fileName}}`)
-      return
-    }
+export async function newNote(dir: string, path: string) {
+  const list = await listNotes(dir)
+  let completePath = path
+  if (["/", "\\"].includes(completePath[completePath.length - 1]))
+    completePath += "index"
+  if (!completePath.endsWith(".md"))
+    completePath += ".md"
 
-    const oldRelDir = dirname(oldNote.fileName)
-    const oldPath = join(dir, oldNote.fileName)
+  const existingNote = list.getByFileName(completePath)
 
-    if (oldNote.fileName.endsWith("index.md")) {
-      const fromPath = dirname(oldPath)
-      const newPath = join(dir, dirname(oldRelDir), newName)
+  if (existingNote) {
+    printError(`Error: Note ID is exist in ${existingNote.fileName}`)
+    return
+  }
 
-      console.log(`Moving from ${fromPath} to ${newPath}`)
-      fs.move(fromPath, newPath)
-      return
-    }
+  const id = list.addFile(completePath)
+  const fileName = join(dir, completePath)
+  const content = `# ${id}\n`
 
-    const newPath = join(dir, oldRelDir, newName + ".md")
+  fs.ensureFileSync(fileName)
+  fs.writeFileSync(fileName, content)
+}
 
-    console.log(`Moving from ${oldPath} to ${newPath}`)
-    fs.moveSync(oldNote.fileName, newPath)
-  })
+export async function renameNote(dir: string, oldName: string, newName: string) {
+  const list = await listNotes(dir)
+  const oldNote = list.getById(oldName)
+  if (!oldNote) {
+    printError(`Error: Note with id ${oldName} is not exist`)
+    return
+  }
+  const newNote = list.getById(newName)
+  if (newNote) {
+    printError(`Error: Note with id ${newName} already exist in ${newNote.fileName}}`)
+    return
+  }
+
+  const oldRelDir = dirname(oldNote.fileName)
+  const oldPath = join(dir, oldNote.fileName)
+
+  if (oldNote.fileName.endsWith("index.md")) {
+    const fromPath = dirname(oldPath)
+    const newPath = join(dir, dirname(oldRelDir), newName)
+
+    console.log(`Moving from ${fromPath} to ${newPath}`)
+    fs.move(fromPath, newPath)
+    return
+  }
+
+  const newPath = join(dir, oldRelDir, newName + ".md")
+
+  console.log(`Moving from ${oldPath} to ${newPath}`)
+  fs.moveSync(oldNote.fileName, newPath)
 }
 
 export class BuildAction {
