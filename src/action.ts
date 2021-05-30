@@ -90,11 +90,13 @@ export class BuildAction {
   clean: boolean
   builder!: Builder
   dir: string
+  verbose: boolean
 
-  constructor(watch: boolean, clean: boolean, dir: string) {
+  constructor(watch: boolean, clean: boolean, dir: string, verbose: boolean) {
     this.watch = watch
     this.clean = clean
     this.dir = dir
+    this.verbose = verbose
   }
 
   async run() {
@@ -121,7 +123,7 @@ export class BuildAction {
   }
 
   protected async start() {
-    this.builder = new Builder(this.dir, this.clean, this.watch)
+    this.builder = new Builder(this.dir, this.clean, this.watch, this.verbose)
     this.beforeRun()
     await this.builder.run()
   }
@@ -134,8 +136,8 @@ export class BuildAction {
 export class ServeAction extends BuildAction {
   server!: Server
 
-  constructor(clean: boolean, dir: string) {
-    super(true, clean, dir)
+  constructor(clean: boolean, dir: string, verbose: boolean) {
+    super(true, clean, dir, verbose)
   }
 
   protected beforeRun() {

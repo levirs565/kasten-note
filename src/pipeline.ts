@@ -55,7 +55,7 @@ function analyzerAttacker(doc: document.Options, onImageFound: ImageFoundListene
  * dir: Kasten root dir
  * fileRel: file name relative to root dir with extension
  */
-export async function buildMarkdown(dir: string, fileRel: string, noteList: NoteList, onImageFound: ImageFoundListener) {
+export async function buildMarkdown(dir: string, fileRel: string, noteList: NoteList, onImageFound: ImageFoundListener, quiet: boolean) {
   const file = path.join(dir, fileRel)
   const distFile = util.getDistFile(dir, fileRel)
   const docSettings: document.Options = {
@@ -94,7 +94,9 @@ export async function buildMarkdown(dir: string, fileRel: string, noteList: Note
   const resultFile = await processor.process(
     await toVfile.read({ path: fileRel, cwd: dir })
   )
-  console.log(reporter(resultFile))
+  const report  = reporter(resultFile, { quiet })
+  if (report.length > 0)
+    console.log(report)
   resultFile.path = distFile
 
   await fs.ensureFile(resultFile.path)

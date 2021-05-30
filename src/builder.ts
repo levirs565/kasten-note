@@ -16,6 +16,7 @@ export default class Builder {
   kastenDir: string
   clean: boolean
   watch: boolean
+  verbose: boolean
   onUpdate!: (fileName: string) => void
   noteList = new NoteList()
   pendingBuild = new Array<string>()
@@ -24,10 +25,11 @@ export default class Builder {
   imgGraph = createGraph()
   watcher!: chokidar.FSWatcher
 
-  constructor(dir: string, clean: boolean, watch: boolean) {
+  constructor(dir: string, clean: boolean, watch: boolean, verbose: boolean) {
     this.kastenDir = dir
     this.clean = clean
     this.watch = watch
+    this.verbose = verbose
   }
 
   private maybeUpdate(path: string) {
@@ -36,7 +38,8 @@ export default class Builder {
   }
 
   private async rebuild(path: string) {
-    console.log(`Building ${path}`)
+    if (this.verbose)
+      console.log(`Building ${path}`)
     const lastImgList: NodeId[] = []
 
     this.imgGraph.forEachLinkedNode(path, (node, link) => {
@@ -44,7 +47,7 @@ export default class Builder {
       this.imgGraph.removeLink(link)
     }, true)
 
-    await pipeline.buildMarkdown(this.kastenDir, path, this.noteList, this.onImageFound)
+    await pipeline.buildMarkdown(this.kastenDir, path, this.noteList, this.onImageFound, !this.verbose)
 
     for (const img of lastImgList) {
       if (this.imgGraph.getLinks(img)!.length > 0)
@@ -91,12 +94,14 @@ export default class Builder {
   }
 
   private updateAsset(path: string) {
-    console.log(`Updating asset ${path}`)
+    if (this.verbose)
+      console.log(`Updating asset ${path}`)
     fs.copySync(join(this.kastenDir, path), join(util.getDistDir(this.kastenDir), path))
   }
 
   private removeAsset(path: string) {
-    console.log(`Removing asset ${path}`)
+    if (this.verbose)
+      console.log(`Removing asset ${path}`)
     fs.removeSync(join(util.getDistDir(this.kastenDir), path))
   }
 
@@ -125,7 +130,8 @@ export default class Builder {
 
   onReady = async () => {
     this.isReady = true
-    console.log("Builder is ready now")
+    if (this.verbose)
+      console.log("Builder is ready now")
     for (const file of this.pendingBuild) {
       await this.rebuild(file)
     }

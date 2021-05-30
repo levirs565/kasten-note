@@ -4,7 +4,7 @@ declare module "to-vfile" {
 }
 
 declare module "vfile-reporter" {
-  export default function (vfile: any): string
+  export default function (vfile: any, opts: any): string
 }
 
 declare module "remark-wiki-link" {
