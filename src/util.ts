@@ -58,3 +58,11 @@ export function printTable(table: string[][]) {
     height: t.contentHeight
   });
 }
+
+export function printInfo(text: string) {
+  terminal.blue(text + "\n")
+}
+
+export function printError(text: string) {
+  terminal.red(text + "\n")
+}

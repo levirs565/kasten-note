@@ -1,5 +1,5 @@
 import { NoteList } from "./base"
-import { watchNotes, printTable } from "./util"
+import { watchNotes, printTable, printInfo, printError } from "./util"
 import Builder from "./builder"
 import Server from "./server"
 import { join, dirname } from "path"
@@ -41,7 +41,7 @@ export function newNote(dir: string, path: string) {
     const existingNote = list.getByFileName(completePath)
 
     if (existingNote) {
-      console.error(`Error: Note ID is exist in ${existingNote.fileName}`)
+      printError(`Error: Note ID is exist in ${existingNote.fileName}`)
       return
     }
 
@@ -58,12 +58,12 @@ export function renameNote(dir: string, oldName: string, newName: string) {
   listNotes(dir, (list) => {
     const oldNote = list.getById(oldName)
     if (!oldNote) {
-      console.error(`Error: Note with id ${oldName} is not exist`)
+      printError(`Error: Note with id ${oldName} is not exist`)
       return
     }
     const newNote = list.getById(newName)
     if (newNote) {
-      console.error(`Error: Note with id ${newName} already exist in ${newNote.fileName}}`)
+      printError(`Error: Note with id ${newName} already exist in ${newNote.fileName}}`)
       return
     }
 
@@ -100,7 +100,7 @@ export class BuildAction {
 
   async run() {
     if (this.watch)
-      terminal.blue("Press CTRL-R for full rebuild\n")
+      printInfo("Press CTRL-R for full rebuild")
 
     await this.start()
 
