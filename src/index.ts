@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { program } from "commander"
 import { getCurrentDir } from "./util"
-import { listNotes, newNote, renameNote, BuildAction, ServeAction } from "./action"
+import { printListNotes, newNote, renameNote, BuildAction, ServeAction } from "./action"
 import { version } from "../package.json"
 
 program
@@ -38,13 +38,7 @@ program.command("list")
   .description("list notes")
   .action(async () => {
     const dir = await getCurrentDir()
-    listNotes(dir, (list) => {
-      console.log("ID,Path,Url")
-      for (const id in list.getAll()) {
-        const note = list.getById(id)!
-        console.log(`${id},${note.fileName},${note.urlPath}`)
-      }
-    })
+    printListNotes(dir)
   })
 
 program.command("new")

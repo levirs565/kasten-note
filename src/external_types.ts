@@ -16,3 +16,8 @@ declare module "*.json";
 declare module "ngraph.tojson" {
   export default function (graph: any): any
 }
+
+declare module "terminal-kit" {
+  export const terminal: any
+  export const TextTable: any
+}

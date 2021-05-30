@@ -26,7 +26,6 @@ devDependencies:
   '@types/fs-extra': 9.0.11
   '@types/jest': 26.0.22
   '@types/node': 14.14.37
-  '@types/terminal-kit': 1.28.2
   '@types/ws': 7.4.1
   jest: 26.6.3
   ts-jest: 26.5.4_jest@26.6.3+typescript@4.2.4
@@ -681,10 +680,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-YATxVxgRqNH6nHEIsvg6k2Boc1JHI9ZbH5iWFFv/MTkchz3b1ieGDa5T0a9RznNdI0KhVbdbWSN+KWWrQZRxTw==
-  /@types/nextgen-events/1.1.0:
-    dev: true
-    resolution:
-      integrity: sha512-vRh1NWJKNuhdeo0x85veoA7gZTC9IIC9LSmFUHT5Vk50rH/SDvXy4gKarcT4rLfBWxOIfyozpX/IHAAnz4oWTg==
   /@types/node/14.14.37:
     dev: true
     resolution:
@@ -724,12 +719,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-RJJrrySY7A8havqpGObOB4W92QXKJo63/jFLLgpvOtsGUqbQZ9Sbgl35KMm1DjC6j7AvmmU2bIno+3IyEaemaw==
-  /@types/terminal-kit/1.28.2:
-    dependencies:
-      '@types/nextgen-events': 1.1.0
-    dev: true
-    resolution:
-      integrity: sha512-OZeTE0lE5N1MZJZfiHU2RgcH4zGpKF8K2vkKq1KsjsLqkrrLLmHrUjWzyJ3R+c4xNwNff4nID1vQn1CejVnFsw==
   /@types/unist/2.0.3:
     resolution:
       integrity: sha512-FvUupuM3rlRsRtCN+fDudtmytGO6iHJuuRKS1Ss0pG5z8oX0diNEw94UEL7hgDbpN94rgaK5R7sWm6RrSkZuAQ==
@@ -5220,7 +5209,6 @@ specifiers:
   '@types/fs-extra': ^9.0.11
   '@types/jest': ^26.0.22
   '@types/node': ^14.14.37
-  '@types/terminal-kit': ^1.28.2
   '@types/ws': ^7.4.1
   chokidar: ^3.5.1
   commander: ^7.2.0

@@ -1,12 +1,12 @@
 import { NoteList } from "./base"
-import { watchNotes } from "./util"
+import { watchNotes, printTable } from "./util"
 import Builder from "./builder"
 import Server from "./server"
 import { join, dirname } from "path"
 import { terminal } from "terminal-kit"
 import fs from "fs-extra"
 
-export function listNotes(dir: string, onReady: (list: NoteList) => void) {
+function listNotes(dir: string, onReady: (list: NoteList) => void) {
   const list = new NoteList()
   watchNotes(dir, false)
     .on("add", (path) => {
@@ -15,6 +15,19 @@ export function listNotes(dir: string, onReady: (list: NoteList) => void) {
     .on("ready", () => {
       onReady(list)
     })
+}
+
+export function printListNotes(dir: string) {
+  listNotes(dir, (list) => {
+    const table = [
+      ["ID", "Path", "URL"]
+    ]
+    for (const id in list.getAll()) {
+      const note = list.getById(id)!
+      table.push([note.id, note.fileName, note.urlPath])
+    }
+    printTable(table)
+  })
 }
 
 export function newNote(dir: string, path: string) {
@@ -59,8 +72,8 @@ export function renameNote(dir: string, oldName: string, newName: string) {
 
     if (oldNote.fileName.endsWith("index.md")) {
       const fromPath = dirname(oldPath)
-      const newPath = join(dir, dirname(oldRelDir), newName)      
-      
+      const newPath = join(dir, dirname(oldRelDir), newName)
+
       console.log(`Moving from ${fromPath} to ${newPath}`)
       fs.move(fromPath, newPath)
       return
@@ -98,11 +111,11 @@ export class BuildAction {
   }
 
   private onKey = async (key: string) => {
-      if (key == "CTRL_C") terminal.processExit(0)
-      if (key != "CTRL_R") return
+    if (key == "CTRL_C") terminal.processExit(0)
+    if (key != "CTRL_R") return
 
-      await this.stop()
-      await this.start()
+    await this.stop()
+    await this.start()
   }
 
   protected beforeRun() {
@@ -132,7 +145,7 @@ export class ServeAction extends BuildAction {
   }
 
   protected async start() {
-    this.server = new Server(this.dir) 
+    this.server = new Server(this.dir)
     await super.start()
   }
 

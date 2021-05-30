@@ -1,6 +1,7 @@
 import path from "path"
 import fs from "fs-extra"
 import chokidar from "chokidar"
+import { terminal, TextTable } from "terminal-kit"
 
 export const excludedFiles = ["dist/**", "**/.git/**"]
 
@@ -49,4 +50,11 @@ export function watchNotes(dir: string, persistent: boolean) {
     persistent: persistent,
     ignored: excludedFiles
   })
+}
+
+export function printTable(table: string[][]) {
+  const t = new TextTable({cellContents: table})
+  terminal.table(table, {
+    height: t.contentHeight
+  });
 }
