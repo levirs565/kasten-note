@@ -126,7 +126,6 @@ export default class Builder {
   onReady = async () => {
     this.isReady = true
     console.log("Builder is ready now")
-    console.log(`Wiki links is: ${JSON.stringify(this.noteList)}`)
     for (const file of this.pendingBuild) {
       await this.rebuild(file)
     }
