@@ -2,6 +2,22 @@
 ## [Unreleased]
 
 
+<a name="v0.3.0"></a>
+## [v0.3.0] - 2021-06-02
+- bump version
+- build: update rehype katex to 5.0.0
+- feat: add verbose mode to builder
+- feat: remove wiki links logging in builder
+- refractor: make listNotes promise
+- feat: make erorr and info colorfull
+- feat: make list action print table
+- feat: make notice in build action blue
+- feat: support rebuild in serve action
+- refractor: move build action to actions.ts
+- feat: support full rebuild in build action
+- chore: add changelog
+
+
 <a name="v0.2.1"></a>
 ## [v0.2.1] - 2021-05-25
 - bump version
@@ -83,6 +99,7 @@
 - add find kasten dir functionality
 
 
-[Unreleased]: https://github.com/levirs565/kasten-note/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/levirs565/kasten-note/compare/v0.3.0...HEAD
+[v0.3.0]: https://github.com/levirs565/kasten-note/compare/v0.2.1...v0.3.0
 [v0.2.1]: https://github.com/levirs565/kasten-note/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/levirs565/kasten-note/compare/v0.1.0...v0.2.0
