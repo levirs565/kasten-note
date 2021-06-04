@@ -24,6 +24,7 @@ export default class Builder {
   isReady = false;
   onAfterReady!: () => void;
   imgGraph = createGraph();
+  markdownErrorHistory = new Set<string>()
   watcher!: chokidar.FSWatcher;
 
   constructor(dir: string, clean: boolean, watch: boolean, verbose: boolean) {
@@ -64,7 +65,16 @@ export default class Builder {
     await toVfile.write(resultFile)
 
     const report = reporter(resultFile, { quiet: !this.verbose });
-    if (report.length > 0) console.log(report);
+    if (report.length > 0) {
+      console.log(report);
+      this.markdownErrorHistory.add(path)
+    } else  {
+      if (this.markdownErrorHistory.has(path))
+        util.printInfo(`${path}: Error has been fixed`)
+
+      this.markdownErrorHistory.delete(path)
+    }
+    
 
     for (const img of lastImgList) {
       if (this.imgGraph.getLinks(img)!.length > 0) continue;
