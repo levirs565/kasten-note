@@ -15,6 +15,10 @@ import {
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
+import unified from "unified";
+import remark from "remark-parse";
+import { Node } from "unist";
+
 let connection = createConnection(ProposedFeatures.all);
 
 let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
@@ -80,13 +84,14 @@ const defaultSettings: ExampleSettings = {
 let globalSettings: ExampleSettings = defaultSettings;
 
 let documentSettings: Map<string, Thenable<ExampleSettings>> = new Map();
+let documentNodes: Map<string, Node> = new Map()
 
 connection.onDidChangeConfiguration((change) => {
   if (hasConfigurationCapability) documentSettings.clear();
   else
     globalSettings = change.settings.languageServerExample || defaultSettings;
 
-  documents.all().forEach(validateTextDocument);
+  documents.all().forEach(parseTextDocument);
 });
 
 function getDocumentSetting(resource: string): Thenable<ExampleSettings> {
@@ -105,50 +110,20 @@ function getDocumentSetting(resource: string): Thenable<ExampleSettings> {
 
 documents.onDidClose((e) => {
   documentSettings.delete(e.document.uri);
+  documentNodes.delete(e.document.uri) 
 });
 
 documents.onDidChangeContent((change) => {
   connection.console.log("onDidChangeContent")
-  validateTextDocument(change.document);
+  parseTextDocument(change.document);
 });
 
-async function validateTextDocument(document: TextDocument) {
-  let settings = await getDocumentSetting(document.uri);
-  let text = document.getText();
-  let diagnostics: Diagnostic[] = [];
-  let pos = 0;
-  for (const line of text.split('\n')) {
-    const isEmpty = line.trim().length == 0;
-    if (isEmpty) {
-      let diagnostic: Diagnostic = {
-        severity: DiagnosticSeverity.Warning,
-        range: {
-          start: document.positionAt(pos),
-          end: document.positionAt(pos + line.length),
-        },
-        message: 'Line is blank',
-        source: 'ex',
-      };
-      if (hasDiagnosticRelatedInformationCapability) {
-        diagnostic.relatedInformation = [
-          {
-            location: {
-              uri: document.uri,
-              range: Object.assign({}, diagnostic.range),
-            },
-            message: 'This line is useles',
-          },
-        ];
-      }
-      diagnostics.push(diagnostic)
-    }
-    pos += line.length + 1; //Because newline not counted
-  }
+async function parseTextDocument(document: TextDocument) {
+  const parser = unified()
+    .use(remark)
 
-  connection.sendDiagnostics({
-    uri: document.uri,
-    diagnostics,
-  });
+  const node = parser.parse(document.getText()) 
+  documentNodes.set(document.uri, node)
 }
 
 connection.onDidChangeWatchedFiles((_change) => {
