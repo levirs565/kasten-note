@@ -21,6 +21,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import unified from 'unified';
 import remark from 'remark-parse';
+import { wikiLinkPlugin } from 'remark-wiki-link';
 import { Node } from 'unist';
 import visitNode from 'unist-util-visit';
 
@@ -125,7 +126,7 @@ documents.onDidChangeContent((change) => {
 });
 
 async function parseTextDocument(document: TextDocument) {
-  const parser = unified().use(remark);
+  const parser = unified().use(remark).use(wikiLinkPlugin);
 
   const node = parser.parse(document.getText());
   documentNodes.set(document.uri, node);
@@ -138,7 +139,7 @@ connection.onDidChangeWatchedFiles((_change) => {
 function getCurrentNode(uri: string, position: Position): Node | undefined {
   const nodes = documentNodes.get(uri);
   const document = documents.get(uri);
-  if (!nodes || !document) return undefined
+  if (!nodes || !document) return undefined;
 
   const cursorOffset = document.offsetAt(position);
   let currentNode: Node | undefined = undefined;
@@ -163,14 +164,17 @@ function getCurrentNode(uri: string, position: Position): Node | undefined {
 connection.onHover((params: HoverParams) => {
   const node = getCurrentNode(params.textDocument.uri, params.position);
 
-  const hover: Hover =  {
+  const hover: Hover = {
     contents: {
       kind: MarkupKind.Markdown,
-      value:  "Node information:\n\n```json\n" + JSON.stringify(node, undefined, 2) + "\n```"
-    }
-  }
+      value:
+        'Node information:\n\n```json\n' +
+        JSON.stringify(node, undefined, 2) +
+        '\n```',
+    },
+  };
 
-  return hover
+  return hover;
 });
 
 connection.onCompletion(
