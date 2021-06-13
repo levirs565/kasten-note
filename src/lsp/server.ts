@@ -189,7 +189,7 @@ connection.onHover((params: HoverParams) => {
   if (node?.type == "wikiLink") {
     const target = noteList.getById(node.value as string)
     if (target)
-      text = `Link target: "${target.fileName}\n"` + text
+      text = `Link target: "${target.fileName}"\n` + text
   }
   
   const hover: Hover = {
