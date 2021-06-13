@@ -148,6 +148,32 @@ async function parseTextDocument(document: TextDocument) {
 
   const node = parser.parse(document.getText());
   documentNodes.set(document.uri, node);
+  checkLink(document, node)
+}
+
+function checkLink(document: TextDocument, node: Node) {
+  let diaganosticList: Diagnostic[] = []
+
+  function checkLink(node: Node) {
+    const value = node.value as string
+    const target = noteList.getById(value)
+    if (target) return
+
+    const startPos = document.positionAt(node.position?.start.offset ?? 0)
+    const endPos = document.positionAt(node.position?.end.offset ?? 0)
+    diaganosticList.push({
+      range: Range.create(startPos, endPos),
+      severity: DiagnosticSeverity.Warning,
+      message: `Note with id ${value} is not found`
+    })
+  }
+
+  visitNode(node, "wikiLink", checkLink)
+  
+  connection.sendDiagnostics({
+    uri: document.uri,
+    diagnostics: diaganosticList
+  })
 }
 
 connection.onDidChangeWatchedFiles((_change) => {
