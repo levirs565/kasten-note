@@ -11,13 +11,18 @@ import {
   TextDocumentPositionParams,
   CompletionItem,
   CompletionItemKind,
+  HoverParams,
+  Hover,
+  MarkupKind,
+  Position,
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
-import unified from "unified";
-import remark from "remark-parse";
-import { Node } from "unist";
+import unified from 'unified';
+import remark from 'remark-parse';
+import { Node } from 'unist';
+import visitNode from 'unist-util-visit';
 
 let connection = createConnection(ProposedFeatures.all);
 
@@ -48,6 +53,7 @@ connection.onInitialize((params: InitializeParams) => {
       completionProvider: {
         resolveProvider: true,
       },
+      hoverProvider: true,
     },
   };
   if (hasWorkspaceFolderCapability)
@@ -84,7 +90,7 @@ const defaultSettings: ExampleSettings = {
 let globalSettings: ExampleSettings = defaultSettings;
 
 let documentSettings: Map<string, Thenable<ExampleSettings>> = new Map();
-let documentNodes: Map<string, Node> = new Map()
+let documentNodes: Map<string, Node> = new Map();
 
 connection.onDidChangeConfiguration((change) => {
   if (hasConfigurationCapability) documentSettings.clear();
@@ -110,24 +116,61 @@ function getDocumentSetting(resource: string): Thenable<ExampleSettings> {
 
 documents.onDidClose((e) => {
   documentSettings.delete(e.document.uri);
-  documentNodes.delete(e.document.uri) 
+  documentNodes.delete(e.document.uri);
 });
 
 documents.onDidChangeContent((change) => {
-  connection.console.log("onDidChangeContent")
+  connection.console.log('onDidChangeContent');
   parseTextDocument(change.document);
 });
 
 async function parseTextDocument(document: TextDocument) {
-  const parser = unified()
-    .use(remark)
+  const parser = unified().use(remark);
 
-  const node = parser.parse(document.getText()) 
-  documentNodes.set(document.uri, node)
+  const node = parser.parse(document.getText());
+  documentNodes.set(document.uri, node);
 }
 
 connection.onDidChangeWatchedFiles((_change) => {
   connection.console.log('Received file change event');
+});
+
+function getCurrentNode(uri: string, position: Position): Node | undefined {
+  const nodes = documentNodes.get(uri);
+  const document = documents.get(uri);
+  if (!nodes || !document) return undefined
+
+  const cursorOffset = document.offsetAt(position);
+  let currentNode: Node | undefined = undefined;
+
+  function test(node: unknown): node is Node {
+    const pos = (node as Node).position;
+    return (
+      (pos?.start.offset ?? 0) <= cursorOffset &&
+      (pos?.end.offset ?? 0) >= cursorOffset
+    );
+  }
+
+  function visitor(node: Node) {
+    currentNode = node;
+  }
+
+  visitNode(nodes, test, visitor);
+
+  return currentNode;
+}
+
+connection.onHover((params: HoverParams) => {
+  const node = getCurrentNode(params.textDocument.uri, params.position);
+
+  const hover: Hover =  {
+    contents: {
+      kind: MarkupKind.Markdown,
+      value:  "Node information:\n\n```json\n" + JSON.stringify(node, undefined, 2) + "\n```"
+    }
+  }
+
+  return hover
 });
 
 connection.onCompletion(
@@ -140,7 +183,7 @@ connection.onCompletion(
 );
 
 connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
-  connection.console.log("onCompletionResolve")
+  connection.console.log('onCompletionResolve');
   if (item.data == 1) {
     item.detail = 'Laho detail';
     item.documentation = 'Laho documentation';
@@ -151,6 +194,6 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
   return item;
 });
 
-documents.listen(connection)
+documents.listen(connection);
 
-connection.listen()
+connection.listen();
