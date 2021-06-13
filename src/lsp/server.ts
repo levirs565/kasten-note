@@ -14,11 +14,14 @@ import {
   HoverParams,
   Hover,
   MarkupKind,
+  DefinitionParams,
   Position,
+  Definition,
+  Range
 } from 'vscode-languageserver/node';
-
 import { TextDocument } from 'vscode-languageserver-textdocument';
-
+import URI from "vscode-uri";
+import { join as joinPath } from "path"
 import unified from 'unified';
 import remark from 'remark-parse';
 import { wikiLinkPlugin } from 'remark-wiki-link';
@@ -27,6 +30,7 @@ import visitNode from 'unist-util-visit';
 import { NoteList } from "../base"
 import { watchNotes } from "../util";
 
+
 let connection = createConnection(ProposedFeatures.all);
 
 let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
@@ -34,6 +38,7 @@ let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability: boolean = false;
+let rootPath: string | null | undefined = null
 const noteList = new NoteList()
 
 connection.onInitialize((params: InitializeParams) => {
@@ -58,6 +63,7 @@ connection.onInitialize((params: InitializeParams) => {
         resolveProvider: true,
       },
       hoverProvider: true,
+      definitionProvider: true
     },
   };
   if (hasWorkspaceFolderCapability)
@@ -67,6 +73,7 @@ connection.onInitialize((params: InitializeParams) => {
       },
     };
 
+  rootPath = params.rootPath
   watchNotes(params.rootPath!, true)
     .on('add', (path) => {
       noteList.addFile(path)
@@ -194,6 +201,24 @@ connection.onHover((params: HoverParams) => {
 
   return hover;
 });
+
+connection.onDefinition((params: DefinitionParams) => {
+  const node = getCurrentNode(params.textDocument.uri, params.position)
+  if (!node || node.type != "wikiLink")
+    return undefined
+
+  const target = noteList.getById(node.value as string)
+
+  if (!target)
+    return undefined
+
+  const uri = URI.file(joinPath(rootPath!, target.fileName))
+  const definition: Definition = {
+    uri: uri.toString(),
+    range: Range.create(0, 0, 0,0 )
+  }
+  return definition
+})
 
 connection.onCompletion(
   (_position: TextDocumentPositionParams): CompletionItem[] => {

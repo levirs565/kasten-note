@@ -33,6 +33,7 @@ specifiers:
   vfile-reporter: ^6.0.2
   vscode-languageserver: ^7.0.0
   vscode-languageserver-textdocument: ^1.0.1
+  vscode-uri: 1.0.8
   ws: ^7.4.4
 
 dependencies:
@@ -59,6 +60,7 @@ dependencies:
   vfile-reporter: 6.0.2
   vscode-languageserver: 7.0.0
   vscode-languageserver-textdocument: 1.0.1
+  vscode-uri: 1.0.8
   ws: 7.4.4
 
 devDependencies:
@@ -4860,6 +4862,10 @@ packages:
     hasBin: true
     dependencies:
       vscode-languageserver-protocol: 3.16.0
+    dev: false
+
+  /vscode-uri/1.0.8:
+    resolution: {integrity: sha512-obtSWTlbJ+a+TFRYGaUumtVwb+InIUVI0Lu0VBUAPmj2cU5JutEXg3xUE0c2J5Tcy7h2DEKVJBFi+Y9ZSFzzPQ==}
     dev: false
 
   /w3c-hr-time/1.0.2:
