@@ -40,6 +40,8 @@ let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability: boolean = false;
 let rootPath: string | null | undefined = null
 const noteList = new NoteList()
+let noteListReady = false
+let pendingLinkCheckUri: string[] = []
 
 connection.onInitialize((params: InitializeParams) => {
   let capabilities = params.capabilities;
@@ -81,6 +83,15 @@ connection.onInitialize((params: InitializeParams) => {
     .on('unlink', (path) => {
       noteList.removeFile(path)
     })
+    .on('ready', () => {
+      noteListReady = true
+      for (const uri of pendingLinkCheckUri) {
+        const document = documents.get(uri)
+        if (!document) continue
+          
+        checkLink(document)
+      }
+    })
 
   return result;
 });
@@ -116,7 +127,7 @@ connection.onDidChangeConfiguration((change) => {
   else
     globalSettings = change.settings.languageServerExample || defaultSettings;
 
-  documents.all().forEach(parseTextDocument);
+  documents.all().forEach(documentChanged);
 });
 
 function getDocumentSetting(resource: string): Thenable<ExampleSettings> {
@@ -140,21 +151,31 @@ documents.onDidClose((e) => {
 
 documents.onDidChangeContent((change) => {
   connection.console.log('onDidChangeContent');
-  parseTextDocument(change.document);
+  documentChanged(change.document);
 });
+
+async function documentChanged(document: TextDocument) {
+  await parseTextDocument(document)
+  if (noteListReady)
+    checkLink(document)
+  else
+    pendingLinkCheckUri.push(document.uri)
+}
 
 async function parseTextDocument(document: TextDocument) {
   const parser = unified().use(remark).use(wikiLinkPlugin);
 
   const node = parser.parse(document.getText());
   documentNodes.set(document.uri, node);
-  checkLink(document, node)
 }
 
-function checkLink(document: TextDocument, node: Node) {
+function checkLink(document: TextDocument) {
+  const node = documentNodes.get(document.uri)
+  if (!node) return
+
   let diaganosticList: Diagnostic[] = []
 
-  function checkLink(node: Node) {
+  function check(node: Node) {
     const value = node.value as string
     const target = noteList.getById(value)
     if (target) return
@@ -168,7 +189,7 @@ function checkLink(document: TextDocument, node: Node) {
     })
   }
 
-  visitNode(node, "wikiLink", checkLink)
+  visitNode(node, "wikiLink", check)
   
   connection.sendDiagnostics({
     uri: document.uri,
