@@ -24,6 +24,8 @@ import remark from 'remark-parse';
 import { wikiLinkPlugin } from 'remark-wiki-link';
 import { Node } from 'unist';
 import visitNode from 'unist-util-visit';
+import { NoteList } from "../base"
+import { watchNotes } from "../util";
 
 let connection = createConnection(ProposedFeatures.all);
 
@@ -32,6 +34,7 @@ let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability: boolean = false;
+const noteList = new NoteList()
 
 connection.onInitialize((params: InitializeParams) => {
   let capabilities = params.capabilities;
@@ -63,6 +66,14 @@ connection.onInitialize((params: InitializeParams) => {
         supported: true,
       },
     };
+
+  watchNotes(params.rootPath!, true)
+    .on('add', (path) => {
+      noteList.addFile(path)
+    })
+    .on('unlink', (path) => {
+      noteList.removeFile(path)
+    })
 
   return result;
 });
@@ -164,13 +175,20 @@ function getCurrentNode(uri: string, position: Position): Node | undefined {
 connection.onHover((params: HoverParams) => {
   const node = getCurrentNode(params.textDocument.uri, params.position);
 
+  let text = 'Node information:\n\n```json\n' +
+        JSON.stringify(node, undefined, 2) +
+        '\n```'
+
+  if (node?.type == "wikiLink") {
+    const target = noteList.getById(node.value as string)
+    if (target)
+      text = `Link target: "${target.fileName}\n"` + text
+  }
+  
   const hover: Hover = {
     contents: {
       kind: MarkupKind.Markdown,
-      value:
-        'Node information:\n\n```json\n' +
-        JSON.stringify(node, undefined, 2) +
-        '\n```',
+      value: text,
     },
   };
 
