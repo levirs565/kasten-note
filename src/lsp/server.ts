@@ -21,7 +21,9 @@ import {
   Range,
   CodeAction,
   WorkspaceEdit,
-  CreateFile
+  CreateFile,
+  Command,
+  ExecuteCommandParams
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import URI from 'vscode-uri';
@@ -34,6 +36,7 @@ import visitNode from 'unist-util-visit';
 import { NoteList } from '../base';
 import { watchNotes } from '../util';
 import { wikiLinkNodeType, WikiLinkNode, isWikiLinkNode } from './ast_util';
+import fs from "fs-extra"
 
 let connection = createConnection(ProposedFeatures.all);
 
@@ -46,6 +49,8 @@ let rootPath: string | null | undefined = null;
 const noteList = new NoteList();
 let noteListReady = false;
 let pendingLinkCheckUri: string[] = [];
+
+const COMMAND_CREATE_FILE = "kasten_note.applyCreateFile"
 
 connection.onInitialize((params: InitializeParams) => {
   let capabilities = params.capabilities;
@@ -71,6 +76,11 @@ connection.onInitialize((params: InitializeParams) => {
       hoverProvider: true,
       definitionProvider: true,
       codeActionProvider: true,
+      executeCommandProvider: {
+        commands: [
+          COMMAND_CREATE_FILE
+        ]
+      }
     },
   };
   if (hasWorkspaceFolderCapability)
@@ -100,6 +110,7 @@ connection.onInitialize((params: InitializeParams) => {
 
   return result;
 });
+
 
 connection.onInitialized(() => {
   if (hasConfigurationCapability) {
@@ -267,23 +278,27 @@ connection.onDefinition((params: DefinitionParams) => {
   return definition;
 });
 
+connection.onExecuteCommand((params: ExecuteCommandParams) => {
+  if (params.command != COMMAND_CREATE_FILE) return
+  
+  const file = params.arguments![0]
+  fs.ensureFileSync(file) 
+})
+
 /**
  * Create file action relative to current document folder
  */
 function makeCreateFileActionRelative(uri: string, fileToCreate: string) {
   const dir = dirname(URI.parse(uri).fsPath)
   const fileName = joinPath(dir, fileToCreate)
-  const newFileUri = URI.file(fileName).toString()
-
-  const workspaceEdit: WorkspaceEdit = {
-    documentChanges: [
-      CreateFile.create(newFileUri)
-    ]
-  }
+  const command = Command.create("", COMMAND_CREATE_FILE, fileName)
   
-  return CodeAction.create(`Create file ./${fileToCreate}`, workspaceEdit)
+  return CodeAction.create(`Create file ./${fileToCreate}`, command)
 }
 
+/*
+ * Error when using CreateFile WorkspaceEdit
+ */
 connection.onCodeAction((params: CodeActionParams) => {
   const docUri = params.textDocument.uri
   const node = getCurrentNode(docUri, params.range.start);
