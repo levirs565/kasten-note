@@ -18,12 +18,15 @@ import {
 import URI from 'vscode-uri';
 import { join as joinPath, dirname } from 'path';
 import { Provider } from './provider';
+import { SettingManager } from './setting_manager';
 
 let connection = createConnection(ProposedFeatures.all);
 
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
+
 let provider: Provider | null = null;
+let settingManager: SettingManager | null = null;
 
 const COMMAND_CREATE_FILE = 'kasten_note.applyCreateFile';
 
@@ -58,13 +61,15 @@ connection.onInitialize((params: InitializeParams) => {
       },
     };
 
-  provider = new Provider(params.rootPath!, hasConfigurationCapability);
-  provider.onDiagnosticReady = connection.sendDiagnostics.bind(connection);
-  provider.onGetConfiguration = (uri) =>
+  settingManager = new SettingManager(hasConfigurationCapability);
+  settingManager.onGetConfiguration = (uri) =>
     connection.workspace.getConfiguration({
       scopeUri: uri,
       section: 'kasten_note',
     });
+
+  provider = new Provider(params.rootPath!, settingManager);
+  provider.onDiagnosticReady = connection.sendDiagnostics.bind(connection);
   provider.documents.listen(connection);
   provider.start();
 
@@ -86,7 +91,7 @@ connection.onInitialized(() => {
 });
 
 connection.onDidChangeConfiguration((change) => {
-  provider!.configurationChange(change.settings.kasten_note);
+  settingManager!.configurationChange(change.settings.kasten_note);
   provider!.allDocumentChanged();
 });
 

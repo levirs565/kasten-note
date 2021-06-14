@@ -27,35 +27,25 @@ import {
   isWikiLinkNode,
 } from './ast_util';
 import { watchNotes } from '../util';
-
-export interface ExampleSettings {
-  maxNumberOfProblems: number;
-}
-
-const defaultSettings: ExampleSettings = {
-  maxNumberOfProblems: 1000,
-};
+import { SettingManager } from './setting_manager'
 
 export class Provider {
   rootPath: string;
-  hasConfigurationCapability: boolean;
+  settingManager: SettingManager
   noteList = new NoteList();
   noteListReady = false;
   pendingLinkCheckUri: string[] = [];
   documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
   documentNodes: Map<string, Node> = new Map();
-  globalSettings: ExampleSettings = defaultSettings;
-  documentSettings: Map<string, Thenable<ExampleSettings>> = new Map();
 
   onDiagnosticReady?: (params: PublishDiagnosticsParams) => void;
-  onGetConfiguration?: (resource: string) => Thenable<ExampleSettings>;
 
-  constructor(rootPath: string, hasConfigurationCapability: boolean) {
+  constructor(rootPath: string, settingManager: SettingManager) {
     this.rootPath = rootPath;
-    this.hasConfigurationCapability = hasConfigurationCapability;
+    this.settingManager = settingManager
 
     this.documents.onDidClose((e) => {
-      this.documentSettings.delete(e.document.uri);
+      settingManager.deleteSetting(e.document.uri)
       this.documentNodes.delete(e.document.uri);
     });
 
@@ -83,23 +73,6 @@ export class Provider {
           this.checkLink(document);
         }
       });
-  }
-
-  getDocumentSetting(resource: string): Thenable<ExampleSettings> {
-    if (!this.hasConfigurationCapability)
-      return Promise.resolve(this.globalSettings);
-
-    let result = this.documentSettings.get(resource);
-    if (!result) {
-      result = this.onGetConfiguration!(resource);
-      this.documentSettings.set(resource, result);
-    }
-    return result;
-  }
-
-  configurationChange(newGlobalSetting: ExampleSettings | undefined) {
-    if (this.hasConfigurationCapability) this.documentSettings.clear();
-    else this.globalSettings = newGlobalSetting || defaultSettings;
   }
 
   documentChanged = async (document: TextDocument) => {
