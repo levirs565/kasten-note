@@ -20,8 +20,6 @@ import {
   CodeActionParams,
   Range,
   CodeAction,
-  WorkspaceEdit,
-  CreateFile,
   Command,
   ExecuteCommandParams
 } from 'vscode-languageserver/node';
@@ -44,7 +42,6 @@ let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
-let hasDiagnosticRelatedInformationCapability: boolean = false;
 let rootPath: string | null | undefined = null;
 const noteList = new NoteList();
 let noteListReady = false;
@@ -60,11 +57,6 @@ connection.onInitialize((params: InitializeParams) => {
   );
   hasWorkspaceFolderCapability = !!(
     capabilities.workspace && !!capabilities.workspace.workspaceFolders
-  );
-  hasDiagnosticRelatedInformationCapability = !!(
-    capabilities.textDocument &&
-    capabilities.textDocument.publishDiagnostics &&
-    capabilities.textDocument.publishDiagnostics.relatedInformation
   );
 
   const result: InitializeResult = {
