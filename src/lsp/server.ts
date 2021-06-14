@@ -21,7 +21,7 @@ import {
   Range,
   CodeAction,
   Command,
-  ExecuteCommandParams
+  ExecuteCommandParams,
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import URI from 'vscode-uri';
@@ -33,8 +33,14 @@ import { Node } from 'unist';
 import visitNode from 'unist-util-visit';
 import { NoteList } from '../base';
 import { watchNotes } from '../util';
-import { wikiLinkNodeType, WikiLinkNode, isWikiLinkNode, getNodeInCursor } from './ast_util';
-import fs from "fs-extra"
+import {
+  wikiLinkNodeType,
+  WikiLinkNode,
+  isWikiLinkNode,
+  getNodeInCursor,
+  filterInvalidWikiLink,
+} from './ast_util';
+import fs from 'fs-extra';
 
 let connection = createConnection(ProposedFeatures.all);
 
@@ -47,7 +53,7 @@ const noteList = new NoteList();
 let noteListReady = false;
 let pendingLinkCheckUri: string[] = [];
 
-const COMMAND_CREATE_FILE = "kasten_note.applyCreateFile"
+const COMMAND_CREATE_FILE = 'kasten_note.applyCreateFile';
 
 connection.onInitialize((params: InitializeParams) => {
   let capabilities = params.capabilities;
@@ -69,10 +75,8 @@ connection.onInitialize((params: InitializeParams) => {
       definitionProvider: true,
       codeActionProvider: true,
       executeCommandProvider: {
-        commands: [
-          COMMAND_CREATE_FILE
-        ]
-      }
+        commands: [COMMAND_CREATE_FILE],
+      },
     },
   };
   if (hasWorkspaceFolderCapability)
@@ -86,13 +90,11 @@ connection.onInitialize((params: InitializeParams) => {
   watchNotes(params.rootPath!, true)
     .on('add', (path) => {
       noteList.addFile(path);
-      if (noteListReady)
-        checkAllDocumentsLink()
+      if (noteListReady) checkAllDocumentsLink();
     })
     .on('unlink', (path) => {
       noteList.removeFile(path);
-      if (noteListReady)
-        checkAllDocumentsLink()
+      if (noteListReady) checkAllDocumentsLink();
     })
     .on('ready', () => {
       noteListReady = true;
@@ -106,7 +108,6 @@ connection.onInitialize((params: InitializeParams) => {
 
   return result;
 });
-
 
 connection.onInitialized(() => {
   if (hasConfigurationCapability) {
@@ -183,22 +184,17 @@ function checkLink(document: TextDocument) {
   const node = documentNodes.get(document.uri);
   if (!node) return;
 
-  let diaganosticList: Diagnostic[] = [];
-
-  function check(node: WikiLinkNode) {
-    const target = noteList.getById(node.value);
-    if (target) return;
-
-    const startPos = document.positionAt(node.position?.start.offset ?? 0);
-    const endPos = document.positionAt(node.position?.end.offset ?? 0);
-    diaganosticList.push({
-      range: Range.create(startPos, endPos),
-      severity: DiagnosticSeverity.Warning,
-      message: `Note with id ${node.value} is not found`,
-    });
-  }
-
-  visitNode(node, wikiLinkNodeType, check);
+  let diaganosticList: Diagnostic[] = filterInvalidWikiLink(node, noteList).map(
+    (node) => {
+      const startPos = document.positionAt(node.position?.start.offset ?? 0);
+      const endPos = document.positionAt(node.position?.end.offset ?? 0);
+      return {
+        range: Range.create(startPos, endPos),
+        severity: DiagnosticSeverity.Warning,
+        message: `Note with id ${node.value} is not found`,
+      };
+    }
+  );
 
   connection.sendDiagnostics({
     uri: document.uri,
@@ -207,7 +203,7 @@ function checkLink(document: TextDocument) {
 }
 
 function checkAllDocumentsLink() {
-  documents.all().forEach(checkLink)
+  documents.all().forEach(checkLink);
 }
 
 connection.onDidChangeWatchedFiles((_change) => {
@@ -220,7 +216,7 @@ function getCurrentNode(uri: string, position: Position): Node | undefined {
   if (!nodes || !document) return undefined;
 
   const cursorOffset = document.offsetAt(position);
-  
+
   return getNodeInCursor(nodes, cursorOffset);
 }
 
@@ -264,28 +260,28 @@ connection.onDefinition((params: DefinitionParams) => {
 });
 
 connection.onExecuteCommand((params: ExecuteCommandParams) => {
-  if (params.command != COMMAND_CREATE_FILE) return
-  
-  const file = params.arguments![0]
-  fs.ensureFileSync(file) 
-})
+  if (params.command != COMMAND_CREATE_FILE) return;
+
+  const file = params.arguments![0];
+  fs.ensureFileSync(file);
+});
 
 /**
  * Create file action relative to current document folder
  */
 function makeCreateFileActionRelative(uri: string, fileToCreate: string) {
-  const dir = dirname(URI.parse(uri).fsPath)
-  const fileName = joinPath(dir, fileToCreate)
-  const command = Command.create("", COMMAND_CREATE_FILE, fileName)
-  
-  return CodeAction.create(`Create file ./${fileToCreate}`, command)
+  const dir = dirname(URI.parse(uri).fsPath);
+  const fileName = joinPath(dir, fileToCreate);
+  const command = Command.create('', COMMAND_CREATE_FILE, fileName);
+
+  return CodeAction.create(`Create file ./${fileToCreate}`, command);
 }
 
 /*
  * Error when using CreateFile WorkspaceEdit
  */
 connection.onCodeAction((params: CodeActionParams) => {
-  const docUri = params.textDocument.uri
+  const docUri = params.textDocument.uri;
   const node = getCurrentNode(docUri, params.range.start);
   if (!node || !isWikiLinkNode(node)) return undefined;
 
@@ -294,8 +290,8 @@ connection.onCodeAction((params: CodeActionParams) => {
   if (target) return undefined;
 
   return [
-    makeCreateFileActionRelative(docUri, node.value + ".md"),
-    makeCreateFileActionRelative(docUri, node.value + "/index.md")
+    makeCreateFileActionRelative(docUri, node.value + '.md'),
+    makeCreateFileActionRelative(docUri, node.value + '/index.md'),
   ];
 });
 

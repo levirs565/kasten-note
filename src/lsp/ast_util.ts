@@ -1,5 +1,6 @@
 import { Node, Literal } from "unist";
 import visitNode from "unist-util-visit"
+import { NoteList } from "../base"
 
 export const wikiLinkNodeType = "wikiLink"
 
@@ -36,4 +37,19 @@ export function getNodeInCursor(tree: Node, cursorOffset: number): Node | undefi
   visitNode(tree, test, visitor);
 
   return currentNode;
+}
+
+export function filterInvalidWikiLink(tree: Node, noteList: NoteList): WikiLinkNode[] {
+  const invalidWikiLink: WikiLinkNode[] = []
+
+  function check(node: WikiLinkNode) {
+    const target = noteList.getById(node.value);
+    if (target) return;
+
+    invalidWikiLink.push(node)
+  }
+
+  visitNode(tree, wikiLinkNodeType, check);
+
+  return invalidWikiLink
 }
