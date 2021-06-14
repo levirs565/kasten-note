@@ -17,7 +17,7 @@ import URI from 'vscode-uri';
 import unified from 'unified';
 import remark from 'remark-parse';
 import { Node } from 'unist';
-import { join as joinPath } from 'path';
+import { join as joinPath, dirname } from 'path';
 import fs from 'fs-extra';
 import { wikiLinkPlugin } from 'remark-wiki-link';
 import { NoteList } from '../base';
@@ -169,7 +169,12 @@ export class Provider {
     return definition;
   }
 
-  executeCreateFile(path: string) {
+  /**
+   * Create file relative to directory of file from uri
+   */
+  createFileRelative(uri: string, name: string) {
+    const uriPath = URI.parse(uri).fsPath
+    const path = joinPath(dirname(uriPath), name)
     fs.ensureFileSync(path);
   }
 

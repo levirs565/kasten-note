@@ -28,7 +28,7 @@ let hasWorkspaceFolderCapability: boolean = false;
 let provider: Provider | null = null;
 let settingManager: SettingManager | null = null;
 
-const COMMAND_CREATE_FILE = 'kasten_note.applyCreateFile';
+const COMMAND_CREATE_FILE_RELATIVE = 'kasten_note.applyCreateFile';
 
 connection.onInitialize((params: InitializeParams) => {
   let capabilities = params.capabilities;
@@ -50,7 +50,7 @@ connection.onInitialize((params: InitializeParams) => {
       definitionProvider: true,
       codeActionProvider: true,
       executeCommandProvider: {
-        commands: [COMMAND_CREATE_FILE],
+        commands: [COMMAND_CREATE_FILE_RELATIVE],
       },
     },
   };
@@ -108,22 +108,12 @@ connection.onDefinition((params: DefinitionParams) => {
 });
 
 connection.onExecuteCommand((params: ExecuteCommandParams) => {
-  if (params.command != COMMAND_CREATE_FILE) return;
+  if (params.command != COMMAND_CREATE_FILE_RELATIVE) return;
 
-  const file = params.arguments![0];
-  provider!.executeCreateFile(file);
+  const uri = params.arguments![0];
+  const name = params.arguments![1]
+  provider!.createFileRelative(uri, name);
 });
-
-/**
- * Create file action relative to current document folder
- */
-function makeCreateFileActionRelative(uri: string, fileToCreate: string) {
-  const dir = dirname(URI.parse(uri).fsPath);
-  const fileName = joinPath(dir, fileToCreate);
-  const command = Command.create('', COMMAND_CREATE_FILE, fileName);
-
-  return CodeAction.create(`Create file ./${fileToCreate}`, command);
-}
 
 /*
  * Error when using CreateFile WorkspaceEdit
@@ -132,7 +122,12 @@ connection.onCodeAction((params: CodeActionParams) => {
   return provider!
     .getCreateFileRelativeCodeAction(params)
     ?.map((name) =>
-      makeCreateFileActionRelative(params.textDocument.uri, name)
+      Command.create(
+        `Create file ./${name}`,
+        COMMAND_CREATE_FILE_RELATIVE,
+        params.textDocument.uri,
+        name
+    )
     );
 });
 
