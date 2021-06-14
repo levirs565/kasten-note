@@ -94,9 +94,13 @@ connection.onInitialize((params: InitializeParams) => {
   watchNotes(params.rootPath!, true)
     .on('add', (path) => {
       noteList.addFile(path);
+      if (noteListReady)
+        checkAllDocumentsLink()
     })
     .on('unlink', (path) => {
       noteList.removeFile(path);
+      if (noteListReady)
+        checkAllDocumentsLink()
     })
     .on('ready', () => {
       noteListReady = true;
@@ -208,6 +212,10 @@ function checkLink(document: TextDocument) {
     uri: document.uri,
     diagnostics: diaganosticList,
   });
+}
+
+function checkAllDocumentsLink() {
+  documents.all().forEach(checkLink)
 }
 
 connection.onDidChangeWatchedFiles((_change) => {
