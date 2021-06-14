@@ -29,7 +29,7 @@ import { Node } from 'unist';
 import visitNode from 'unist-util-visit';
 import { NoteList } from "../base"
 import { watchNotes } from "../util";
-
+import { wikiLinkNodeType, WikiLinkNode, isWikiLinkNode } from "./ast_util"
 
 let connection = createConnection(ProposedFeatures.all);
 
@@ -175,9 +175,8 @@ function checkLink(document: TextDocument) {
 
   let diaganosticList: Diagnostic[] = []
 
-  function check(node: Node) {
-    const value = node.value as string
-    const target = noteList.getById(value)
+  function check(node: WikiLinkNode) {
+    const target = noteList.getById(node.value)
     if (target) return
 
     const startPos = document.positionAt(node.position?.start.offset ?? 0)
@@ -185,11 +184,11 @@ function checkLink(document: TextDocument) {
     diaganosticList.push({
       range: Range.create(startPos, endPos),
       severity: DiagnosticSeverity.Warning,
-      message: `Note with id ${value} is not found`
+      message: `Note with id ${node.value} is not found`
     })
   }
 
-  visitNode(node, "wikiLink", check)
+  visitNode(node, wikiLinkNodeType, check)
   
   connection.sendDiagnostics({
     uri: document.uri,
@@ -233,8 +232,8 @@ connection.onHover((params: HoverParams) => {
         JSON.stringify(node, undefined, 2) +
         '\n```'
 
-  if (node?.type == "wikiLink") {
-    const target = noteList.getById(node.value as string)
+  if (node && isWikiLinkNode(node)) {
+    const target = noteList.getById(node.value)
     if (target)
       text = `Link target: "${target.fileName}"\n` + text
   }
@@ -251,10 +250,10 @@ connection.onHover((params: HoverParams) => {
 
 connection.onDefinition((params: DefinitionParams) => {
   const node = getCurrentNode(params.textDocument.uri, params.position)
-  if (!node || node.type != "wikiLink")
+  if (!node || !isWikiLinkNode(node))
     return undefined
 
-  const target = noteList.getById(node.value as string)
+  const target = noteList.getById(node.value)
 
   if (!target)
     return undefined
