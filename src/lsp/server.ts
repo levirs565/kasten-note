@@ -1,57 +1,29 @@
 import {
   createConnection,
   ProposedFeatures,
-  TextDocuments,
   InitializeParams,
   InitializeResult,
   TextDocumentSyncKind,
   DidChangeConfigurationNotification,
-  Diagnostic,
-  DiagnosticSeverity,
   TextDocumentPositionParams,
   CompletionItem,
   CompletionItemKind,
   HoverParams,
-  Hover,
-  MarkupKind,
   DefinitionParams,
-  Position,
-  Definition,
   CodeActionParams,
-  Range,
   CodeAction,
   Command,
   ExecuteCommandParams,
 } from 'vscode-languageserver/node';
-import { TextDocument } from 'vscode-languageserver-textdocument';
 import URI from 'vscode-uri';
 import { join as joinPath, dirname } from 'path';
-import unified from 'unified';
-import remark from 'remark-parse';
-import { wikiLinkPlugin } from 'remark-wiki-link';
-import { Node } from 'unist';
-import visitNode from 'unist-util-visit';
-import { NoteList } from '../base';
-import { watchNotes } from '../util';
-import {
-  wikiLinkNodeType,
-  WikiLinkNode,
-  isWikiLinkNode,
-  getNodeInCursor,
-  filterInvalidWikiLink,
-} from './ast_util';
-import fs from 'fs-extra';
+import { Provider } from './provider';
 
 let connection = createConnection(ProposedFeatures.all);
 
-let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
-
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
-let rootPath: string | null | undefined = null;
-const noteList = new NoteList();
-let noteListReady = false;
-let pendingLinkCheckUri: string[] = [];
+let provider: Provider | null = null;
 
 const COMMAND_CREATE_FILE = 'kasten_note.applyCreateFile';
 
@@ -86,25 +58,15 @@ connection.onInitialize((params: InitializeParams) => {
       },
     };
 
-  rootPath = params.rootPath;
-  watchNotes(params.rootPath!, true)
-    .on('add', (path) => {
-      noteList.addFile(path);
-      if (noteListReady) checkAllDocumentsLink();
-    })
-    .on('unlink', (path) => {
-      noteList.removeFile(path);
-      if (noteListReady) checkAllDocumentsLink();
-    })
-    .on('ready', () => {
-      noteListReady = true;
-      for (const uri of pendingLinkCheckUri) {
-        const document = documents.get(uri);
-        if (!document) continue;
-
-        checkLink(document);
-      }
+  provider = new Provider(params.rootPath!, hasConfigurationCapability);
+  provider.onDiagnosticReady = connection.sendDiagnostics.bind(connection);
+  provider.onGetConfiguration = (uri) =>
+    connection.workspace.getConfiguration({
+      scopeUri: uri,
+      section: 'kasten_note',
     });
+  provider.documents.listen(connection);
+  provider.start();
 
   return result;
 });
@@ -123,147 +85,28 @@ connection.onInitialized(() => {
   }
 });
 
-interface ExampleSettings {
-  maxNumberOfProblems: number;
-}
-
-const defaultSettings: ExampleSettings = {
-  maxNumberOfProblems: 1000,
-};
-let globalSettings: ExampleSettings = defaultSettings;
-
-let documentSettings: Map<string, Thenable<ExampleSettings>> = new Map();
-let documentNodes: Map<string, Node> = new Map();
-
 connection.onDidChangeConfiguration((change) => {
-  if (hasConfigurationCapability) documentSettings.clear();
-  else
-    globalSettings = change.settings.languageServerExample || defaultSettings;
-
-  documents.all().forEach(documentChanged);
+  provider!.configurationChange(change.settings.kasten_note);
+  provider!.allDocumentChanged();
 });
-
-function getDocumentSetting(resource: string): Thenable<ExampleSettings> {
-  if (!hasConfigurationCapability) return Promise.resolve(globalSettings);
-
-  let result = documentSettings.get(resource);
-  if (!result) {
-    result = connection.workspace.getConfiguration({
-      scopeUri: resource,
-      section: 'languageServerExample',
-    });
-    documentSettings.set(resource, result);
-  }
-  return result;
-}
-
-documents.onDidClose((e) => {
-  documentSettings.delete(e.document.uri);
-  documentNodes.delete(e.document.uri);
-});
-
-documents.onDidChangeContent((change) => {
-  connection.console.log('onDidChangeContent');
-  documentChanged(change.document);
-});
-
-async function documentChanged(document: TextDocument) {
-  await parseTextDocument(document);
-  if (noteListReady) checkLink(document);
-  else pendingLinkCheckUri.push(document.uri);
-}
-
-async function parseTextDocument(document: TextDocument) {
-  const parser = unified().use(remark).use(wikiLinkPlugin);
-
-  const node = parser.parse(document.getText());
-  documentNodes.set(document.uri, node);
-}
-
-function checkLink(document: TextDocument) {
-  const node = documentNodes.get(document.uri);
-  if (!node) return;
-
-  let diaganosticList: Diagnostic[] = filterInvalidWikiLink(node, noteList).map(
-    (node) => {
-      const startPos = document.positionAt(node.position?.start.offset ?? 0);
-      const endPos = document.positionAt(node.position?.end.offset ?? 0);
-      return {
-        range: Range.create(startPos, endPos),
-        severity: DiagnosticSeverity.Warning,
-        message: `Note with id ${node.value} is not found`,
-      };
-    }
-  );
-
-  connection.sendDiagnostics({
-    uri: document.uri,
-    diagnostics: diaganosticList,
-  });
-}
-
-function checkAllDocumentsLink() {
-  documents.all().forEach(checkLink);
-}
 
 connection.onDidChangeWatchedFiles((_change) => {
   connection.console.log('Received file change event');
 });
 
-function getCurrentNode(uri: string, position: Position): Node | undefined {
-  const nodes = documentNodes.get(uri);
-  const document = documents.get(uri);
-  if (!nodes || !document) return undefined;
-
-  const cursorOffset = document.offsetAt(position);
-
-  return getNodeInCursor(nodes, cursorOffset);
-}
-
 connection.onHover((params: HoverParams) => {
-  const node = getCurrentNode(params.textDocument.uri, params.position);
-
-  let text =
-    'Node information:\n\n```json\n' +
-    JSON.stringify(node, undefined, 2) +
-    '\n```';
-
-  if (node && isWikiLinkNode(node)) {
-    const target = noteList.getById(node.value);
-    if (target) text = `Link target: "${target.fileName}"\n` + text;
-  }
-
-  const hover: Hover = {
-    contents: {
-      kind: MarkupKind.Markdown,
-      value: text,
-    },
-  };
-
-  return hover;
+  return provider?.getHover(params);
 });
 
 connection.onDefinition((params: DefinitionParams) => {
-  const node = getCurrentNode(params.textDocument.uri, params.position);
-  if (!node || !isWikiLinkNode(node)) return undefined;
-
-  const target = noteList.getById(node.value);
-
-  if (!target) return undefined;
-
-  const uri = URI.file(joinPath(rootPath!, target.fileName));
-  const definition: Definition = {
-    uri: uri.toString(),
-    range: Range.create(0, 0, 0, 0),
-  };
-  return definition;
+  return provider?.getDefinition(params);
 });
 
 connection.onExecuteCommand((params: ExecuteCommandParams) => {
   if (params.command != COMMAND_CREATE_FILE) return;
 
   const file = params.arguments![0];
-  fs.ensureFileSync(file);
+  provider!.executeCreateFile(file);
 });
 
 /**
@@ -281,15 +124,11 @@ function makeCreateFileActionRelative(uri: string, fileToCreate: string) {
  * Error when using CreateFile WorkspaceEdit
  */
 connection.onCodeAction((params: CodeActionParams) => {
-  const docUri = params.textDocument.uri;
-  const node = getCurrentNode(docUri, params.range.start);
-  if (!node || !isWikiLinkNode(node) || noteList.getById(node.value))
-    return undefined;
-
-  return [
-    makeCreateFileActionRelative(docUri, node.value + '.md'),
-    makeCreateFileActionRelative(docUri, node.value + '/index.md'),
-  ];
+  return provider!
+    .getCreateFileRelativeCodeAction(params)
+    ?.map((name) =>
+      makeCreateFileActionRelative(params.textDocument.uri, name)
+    );
 });
 
 connection.onCompletion(
@@ -312,7 +151,5 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
   }
   return item;
 });
-
-documents.listen(connection);
 
 connection.listen();
