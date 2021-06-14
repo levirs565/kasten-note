@@ -17,19 +17,23 @@ import {
   DefinitionParams,
   Position,
   Definition,
-  Range
+  CodeActionParams,
+  Range,
+  CodeAction,
+  WorkspaceEdit,
+  CreateFile
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import URI from "vscode-uri";
-import { join as joinPath } from "path"
+import URI from 'vscode-uri';
+import { join as joinPath, dirname } from 'path';
 import unified from 'unified';
 import remark from 'remark-parse';
 import { wikiLinkPlugin } from 'remark-wiki-link';
 import { Node } from 'unist';
 import visitNode from 'unist-util-visit';
-import { NoteList } from "../base"
-import { watchNotes } from "../util";
-import { wikiLinkNodeType, WikiLinkNode, isWikiLinkNode } from "./ast_util"
+import { NoteList } from '../base';
+import { watchNotes } from '../util';
+import { wikiLinkNodeType, WikiLinkNode, isWikiLinkNode } from './ast_util';
 
 let connection = createConnection(ProposedFeatures.all);
 
@@ -38,10 +42,10 @@ let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability: boolean = false;
-let rootPath: string | null | undefined = null
-const noteList = new NoteList()
-let noteListReady = false
-let pendingLinkCheckUri: string[] = []
+let rootPath: string | null | undefined = null;
+const noteList = new NoteList();
+let noteListReady = false;
+let pendingLinkCheckUri: string[] = [];
 
 connection.onInitialize((params: InitializeParams) => {
   let capabilities = params.capabilities;
@@ -65,7 +69,8 @@ connection.onInitialize((params: InitializeParams) => {
         resolveProvider: true,
       },
       hoverProvider: true,
-      definitionProvider: true
+      definitionProvider: true,
+      codeActionProvider: true,
     },
   };
   if (hasWorkspaceFolderCapability)
@@ -75,23 +80,23 @@ connection.onInitialize((params: InitializeParams) => {
       },
     };
 
-  rootPath = params.rootPath
+  rootPath = params.rootPath;
   watchNotes(params.rootPath!, true)
     .on('add', (path) => {
-      noteList.addFile(path)
+      noteList.addFile(path);
     })
     .on('unlink', (path) => {
-      noteList.removeFile(path)
+      noteList.removeFile(path);
     })
     .on('ready', () => {
-      noteListReady = true
+      noteListReady = true;
       for (const uri of pendingLinkCheckUri) {
-        const document = documents.get(uri)
-        if (!document) continue
-          
-        checkLink(document)
+        const document = documents.get(uri);
+        if (!document) continue;
+
+        checkLink(document);
       }
-    })
+    });
 
   return result;
 });
@@ -155,11 +160,9 @@ documents.onDidChangeContent((change) => {
 });
 
 async function documentChanged(document: TextDocument) {
-  await parseTextDocument(document)
-  if (noteListReady)
-    checkLink(document)
-  else
-    pendingLinkCheckUri.push(document.uri)
+  await parseTextDocument(document);
+  if (noteListReady) checkLink(document);
+  else pendingLinkCheckUri.push(document.uri);
 }
 
 async function parseTextDocument(document: TextDocument) {
@@ -170,30 +173,30 @@ async function parseTextDocument(document: TextDocument) {
 }
 
 function checkLink(document: TextDocument) {
-  const node = documentNodes.get(document.uri)
-  if (!node) return
+  const node = documentNodes.get(document.uri);
+  if (!node) return;
 
-  let diaganosticList: Diagnostic[] = []
+  let diaganosticList: Diagnostic[] = [];
 
   function check(node: WikiLinkNode) {
-    const target = noteList.getById(node.value)
-    if (target) return
+    const target = noteList.getById(node.value);
+    if (target) return;
 
-    const startPos = document.positionAt(node.position?.start.offset ?? 0)
-    const endPos = document.positionAt(node.position?.end.offset ?? 0)
+    const startPos = document.positionAt(node.position?.start.offset ?? 0);
+    const endPos = document.positionAt(node.position?.end.offset ?? 0);
     diaganosticList.push({
       range: Range.create(startPos, endPos),
       severity: DiagnosticSeverity.Warning,
-      message: `Note with id ${node.value} is not found`
-    })
+      message: `Note with id ${node.value} is not found`,
+    });
   }
 
-  visitNode(node, wikiLinkNodeType, check)
-  
+  visitNode(node, wikiLinkNodeType, check);
+
   connection.sendDiagnostics({
     uri: document.uri,
-    diagnostics: diaganosticList
-  })
+    diagnostics: diaganosticList,
+  });
 }
 
 connection.onDidChangeWatchedFiles((_change) => {
@@ -228,16 +231,16 @@ function getCurrentNode(uri: string, position: Position): Node | undefined {
 connection.onHover((params: HoverParams) => {
   const node = getCurrentNode(params.textDocument.uri, params.position);
 
-  let text = 'Node information:\n\n```json\n' +
-        JSON.stringify(node, undefined, 2) +
-        '\n```'
+  let text =
+    'Node information:\n\n```json\n' +
+    JSON.stringify(node, undefined, 2) +
+    '\n```';
 
   if (node && isWikiLinkNode(node)) {
-    const target = noteList.getById(node.value)
-    if (target)
-      text = `Link target: "${target.fileName}"\n` + text
+    const target = noteList.getById(node.value);
+    if (target) text = `Link target: "${target.fileName}"\n` + text;
   }
-  
+
   const hover: Hover = {
     contents: {
       kind: MarkupKind.Markdown,
@@ -249,22 +252,52 @@ connection.onHover((params: HoverParams) => {
 });
 
 connection.onDefinition((params: DefinitionParams) => {
-  const node = getCurrentNode(params.textDocument.uri, params.position)
-  if (!node || !isWikiLinkNode(node))
-    return undefined
+  const node = getCurrentNode(params.textDocument.uri, params.position);
+  if (!node || !isWikiLinkNode(node)) return undefined;
 
-  const target = noteList.getById(node.value)
+  const target = noteList.getById(node.value);
 
-  if (!target)
-    return undefined
+  if (!target) return undefined;
 
-  const uri = URI.file(joinPath(rootPath!, target.fileName))
+  const uri = URI.file(joinPath(rootPath!, target.fileName));
   const definition: Definition = {
     uri: uri.toString(),
-    range: Range.create(0, 0, 0,0 )
+    range: Range.create(0, 0, 0, 0),
+  };
+  return definition;
+});
+
+/**
+ * Create file action relative to current document folder
+ */
+function makeCreateFileActionRelative(uri: string, fileToCreate: string) {
+  const dir = dirname(URI.parse(uri).fsPath)
+  const fileName = joinPath(dir, fileToCreate)
+  const newFileUri = URI.file(fileName).toString()
+
+  const workspaceEdit: WorkspaceEdit = {
+    documentChanges: [
+      CreateFile.create(newFileUri)
+    ]
   }
-  return definition
-})
+  
+  return CodeAction.create(`Create file ./${fileToCreate}`, workspaceEdit)
+}
+
+connection.onCodeAction((params: CodeActionParams) => {
+  const docUri = params.textDocument.uri
+  const node = getCurrentNode(docUri, params.range.start);
+  if (!node || !isWikiLinkNode(node)) return undefined;
+
+  const target = noteList.getById(node.value);
+
+  if (target) return undefined;
+
+  return [
+    makeCreateFileActionRelative(docUri, node.value + ".md"),
+    makeCreateFileActionRelative(docUri, node.value + "/index.md")
+  ];
+});
 
 connection.onCompletion(
   (_position: TextDocumentPositionParams): CompletionItem[] => {
