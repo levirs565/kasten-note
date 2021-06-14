@@ -33,7 +33,7 @@ import { Node } from 'unist';
 import visitNode from 'unist-util-visit';
 import { NoteList } from '../base';
 import { watchNotes } from '../util';
-import { wikiLinkNodeType, WikiLinkNode, isWikiLinkNode } from './ast_util';
+import { wikiLinkNodeType, WikiLinkNode, isWikiLinkNode, getNodeInCursor } from './ast_util';
 import fs from "fs-extra"
 
 let connection = createConnection(ProposedFeatures.all);
@@ -220,23 +220,8 @@ function getCurrentNode(uri: string, position: Position): Node | undefined {
   if (!nodes || !document) return undefined;
 
   const cursorOffset = document.offsetAt(position);
-  let currentNode: Node | undefined = undefined;
-
-  function test(node: unknown): node is Node {
-    const pos = (node as Node).position;
-    return (
-      (pos?.start.offset ?? 0) <= cursorOffset &&
-      (pos?.end.offset ?? 0) >= cursorOffset
-    );
-  }
-
-  function visitor(node: Node) {
-    currentNode = node;
-  }
-
-  visitNode(nodes, test, visitor);
-
-  return currentNode;
+  
+  return getNodeInCursor(nodes, cursorOffset);
 }
 
 connection.onHover((params: HoverParams) => {
