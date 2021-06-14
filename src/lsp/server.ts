@@ -283,11 +283,8 @@ function makeCreateFileActionRelative(uri: string, fileToCreate: string) {
 connection.onCodeAction((params: CodeActionParams) => {
   const docUri = params.textDocument.uri;
   const node = getCurrentNode(docUri, params.range.start);
-  if (!node || !isWikiLinkNode(node)) return undefined;
-
-  const target = noteList.getById(node.value);
-
-  if (target) return undefined;
+  if (!node || !isWikiLinkNode(node) || noteList.getById(node.value))
+    return undefined;
 
   return [
     makeCreateFileActionRelative(docUri, node.value + '.md'),
