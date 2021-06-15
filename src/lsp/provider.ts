@@ -4,9 +4,6 @@ import {
   DiagnosticSeverity,
   Position,
   Range,
-  Hover,
-  MarkupKind,
-  Definition,
   PublishDiagnosticsParams,
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -127,7 +124,7 @@ export class Provider {
     return getNodeInCursor(nodes, cursorOffset);
   }
 
-  getHover(docUri: string, position: Position) {
+  getHoverText(docUri: string, position: Position) {
     const node = this.getCurrentNode(docUri, position);
 
     let text =
@@ -140,17 +137,10 @@ export class Provider {
       if (target) text = `Link target: "${target.fileName}"\n` + text;
     }
 
-    const hover: Hover = {
-      contents: {
-        kind: MarkupKind.Markdown,
-        value: text,
-      },
-    };
-
-    return hover;
+    return text;
   }
 
-  getDefinition(docUri: string, position: Position) {
+  getDefinitionUri(docUri: string, position: Position) {
     const node = this.getCurrentNode(docUri, position);
     if (!node || !isWikiLinkNode(node)) return undefined;
 
@@ -159,11 +149,7 @@ export class Provider {
     if (!target) return undefined;
 
     const uri = URI.file(joinPath(this.rootPath, target.fileName));
-    const definition: Definition = {
-      uri: uri.toString(),
-      range: Range.create(0, 0, 0, 0),
-    };
-    return definition;
+    return uri.toString();
   }
 
   /**

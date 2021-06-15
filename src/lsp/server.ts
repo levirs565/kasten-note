@@ -14,6 +14,8 @@ import {
   CodeAction,
   Command,
   ExecuteCommandParams,
+  Range,
+  MarkupKind
 } from 'vscode-languageserver/node';
 import URI from 'vscode-uri';
 import { join as joinPath, dirname } from 'path';
@@ -100,11 +102,23 @@ connection.onDidChangeWatchedFiles((_change) => {
 });
 
 connection.onHover((params: HoverParams) => {
-  return provider?.getHover(params.textDocument.uri, params.position);
+  const text = provider?.getHoverText(params.textDocument.uri, params.position);
+  if (text)
+    return {
+      contents: {
+        kind: MarkupKind.Markdown,
+        value: text
+      }
+    }
 });
 
 connection.onDefinition((params: DefinitionParams) => {
-  return provider?.getDefinition(params.textDocument.uri, params.position);
+  const definitionUri = provider?.getDefinitionUri(params.textDocument.uri, params.position);
+  if (definitionUri)
+    return {
+      uri: definitionUri,
+      range: Range.create(0, 0, 0, 0)
+    }
 });
 
 connection.onExecuteCommand((params: ExecuteCommandParams) => {
