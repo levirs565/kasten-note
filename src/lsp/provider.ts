@@ -69,24 +69,24 @@ export class Provider {
       });
   }
 
-  documentChanged = async (document: TextDocument) => {
-    await this.parseTextDocument(document);
+  documentChanged = (document: TextDocument) => {
+    this.parseTextDocument(document);
     if (this.noteListReady) this.checkLink(document);
     else this.pendingLinkCheckUri.push(document.uri);
   }
 
-  async allDocumentChanged() {
-    await Promise.all(this.documents.all().map(this.documentChanged));
+  allDocumentChanged() {
+    this.documents.all().forEach(this.documentChanged)
   }
 
-  async parseTextDocument(document: TextDocument) {
+  parseTextDocument(document: TextDocument) {
     const parser = unified().use(remark).use(wikiLinkPlugin);
 
     const node = parser.parse(document.getText());
     this.documentNodes.set(document.uri, node);
   }
 
-  checkLink = async (document: TextDocument) => {
+  checkLink = (document: TextDocument) => {
     const node = this.documentNodes.get(document.uri);
     if (!node) return;
 
