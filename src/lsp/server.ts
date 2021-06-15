@@ -100,11 +100,11 @@ connection.onDidChangeWatchedFiles((_change) => {
 });
 
 connection.onHover((params: HoverParams) => {
-  return provider?.getHover(params);
+  return provider?.getHover(params.textDocument.uri, params.position);
 });
 
 connection.onDefinition((params: DefinitionParams) => {
-  return provider?.getDefinition(params);
+  return provider?.getDefinition(params.textDocument.uri, params.position);
 });
 
 connection.onExecuteCommand((params: ExecuteCommandParams) => {
@@ -120,7 +120,7 @@ connection.onExecuteCommand((params: ExecuteCommandParams) => {
  */
 connection.onCodeAction((params: CodeActionParams) => {
   return provider!
-    .getCreateFileRelativeCodeAction(params)
+    .getCreateFileRelativeCodeAction(params.textDocument.uri, params.range.start)
     ?.map((name) =>
       Command.create(
         `Create file ./${name}`,

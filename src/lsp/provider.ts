@@ -5,12 +5,9 @@ import {
   Position,
   Range,
   Hover,
-  HoverParams,
   MarkupKind,
-  DefinitionParams,
   Definition,
   PublishDiagnosticsParams,
-  CodeActionParams,
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import URI from 'vscode-uri';
@@ -130,8 +127,8 @@ export class Provider {
     return getNodeInCursor(nodes, cursorOffset);
   }
 
-  getHover(params: HoverParams) {
-    const node = this.getCurrentNode(params.textDocument.uri, params.position);
+  getHover(docUri: string, position: Position) {
+    const node = this.getCurrentNode(docUri, position);
 
     let text =
       'Node information:\n\n```json\n' +
@@ -153,8 +150,8 @@ export class Provider {
     return hover;
   }
 
-  getDefinition(params: DefinitionParams) {
-    const node = this.getCurrentNode(params.textDocument.uri, params.position);
+  getDefinition(docUri: string, position: Position) {
+    const node = this.getCurrentNode(docUri, position);
     if (!node || !isWikiLinkNode(node)) return undefined;
 
     const target = this.noteList.getById(node.value);
@@ -178,9 +175,8 @@ export class Provider {
     fs.ensureFileSync(path);
   }
 
-  getCreateFileRelativeCodeAction(params: CodeActionParams) {
-    const docUri = params.textDocument.uri;
-    const node = this.getCurrentNode(docUri, params.range.start);
+  getCreateFileRelativeCodeAction(docUri: string, position: Position) {
+    const node = this.getCurrentNode(docUri, position);
     if (!node || !isWikiLinkNode(node) || this.noteList.getById(node.value))
       return undefined;
 
