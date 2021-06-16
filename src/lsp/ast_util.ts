@@ -22,19 +22,17 @@ export function isWikiLinkNode(node: Node): node is WikiLinkNode {
 export function getNodeInCursor(tree: Node, cursorOffset: number): Node | undefined {
   let currentNode: Node | undefined = undefined;
 
-  function test(node: unknown): node is Node {
-    const pos = (node as Node).position;
-    return (
-      (pos?.start.offset ?? 0) <= cursorOffset &&
-      (pos?.end.offset ?? 0) >= cursorOffset
-    );
-  }
-
   function visitor(node: Node) {
+    const pos = node.position;
+    if (cursorOffset > pos!.end.offset! || cursorOffset < pos!.start.offset!) 
+      return visitNode.SKIP
+
     currentNode = node;
+    if (!node.children)
+      return visitNode.EXIT
   }
 
-  visitNode(tree, test, visitor);
+  visitNode(tree, visitor);
 
   return currentNode;
 }
