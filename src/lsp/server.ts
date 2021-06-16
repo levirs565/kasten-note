@@ -146,11 +146,12 @@ connection.onCodeAction((params: CodeActionParams) => {
 });
 
 connection.onCompletion(
-  (_position: TextDocumentPositionParams): CompletionItem[] => {
-    return [
-      { label: 'Laho', kind: CompletionItemKind.Text, data: 1 },
-      { label: 'Jaja', kind: CompletionItemKind.Text, data: 2 },
-    ];
+  (params: TextDocumentPositionParams) => {
+    return provider?.getCompletionList(params.textDocument.uri, params.position)
+      ?.map((name) => ({
+        label: name,
+        kind: CompletionItemKind.File,
+      }))
   }
 );
 

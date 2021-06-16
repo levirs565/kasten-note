@@ -171,4 +171,21 @@ export class Provider {
       node.value + "/index.md"
     ];
   }
+
+  getCompletionList(uri: string, position: Position) {
+    const node = this.getCurrentNode(uri, position)
+    if (!node || !isWikiLinkNode(node))
+      return
+
+    const offsetRelativeNode = position.character - (node.position?.start.column ?? 0 - 1)
+    const offsetRelativeText = offsetRelativeNode - 2
+    const textBefore = node.value.substring(0, offsetRelativeText).toLowerCase()
+    const result: string[] = []
+    for (const name in this.noteList.getAll()) {
+      if (!name.startsWith(textBefore)) return
+
+      result.push(this.noteList.getById(name)!.id)
+    }
+    return result
+  }
 }
