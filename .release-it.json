@@ -1,5 +1,7 @@
 {
-  "hooks": {},
+  "hooks": {
+    "before:bump": "git-chglog --next-tag ${version} > CHANGELOG.md"
+  },
   "git": {
     "commitMessage": "chore: bump version to ${version}",
     "tagName": "v${version}",
