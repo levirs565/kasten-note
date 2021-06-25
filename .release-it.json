@@ -1,7 +1,6 @@
 {
   "hooks": {},
   "git": {
-    "changelog": "git-chglog ${from}..",
     "commitMessage": "chore: bump version to ${version}",
     "tagName": "v${version}",
     "tagAnnotation": "Release ${version}",
