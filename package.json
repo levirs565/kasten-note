@@ -22,10 +22,14 @@
     "unified": "^9.2.1",
     "unist-util-visit": "^2.0.3",
     "vfile-reporter": "^6.0.2",
+    "vscode-languageserver": "^7.0.0",
+    "vscode-languageserver-textdocument": "^1.0.1",
+    "vscode-uri": "1.0.8",
     "ws": "^7.4.4"
   },
   "bin": {
-    "kasten": "dist/index.js"
+    "kasten": "dist/index.js",
+    "kasten-lsp": "dist/lsp/server.js"
   },
   "devDependencies": {
     "@types/express": "^4.17.11",
