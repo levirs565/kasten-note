@@ -1,0 +1,20 @@
+{
+  "hooks": {
+    "before:init": "pnpm run test",
+    "before:bump": "git-chglog --next-tag ${version} > CHANGELOG.md",
+    "after:bump": "pnpm run build",
+    "after:release": "pnpm publish"
+  },
+  "git": {
+    "commitMessage": "chore: bump version to ${version}",
+    "tagName": "v${version}",
+    "tagAnnotation": "Release ${version}",
+    "push": false
+  },
+  "github": {
+    "release": false
+  },
+  "npm": {
+    "publish": false
+  }
+}
