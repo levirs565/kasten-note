@@ -2,6 +2,44 @@
 ## [Unreleased]
 
 
+<a name="0.4.0"></a>
+## [0.4.0] - 2021-06-25
+- chore: use release-it git plugin
+- chore: add release-it ([#2](https://github.com/levirs565/kasten-note/issues/2))
+- refractor(lsp): rename some get function to provide
+- perf(lsp): make getNodeInCursor faster
+- feat(lsp): add completion for link
+- refractor(lsp): remove unused async-await in provider
+- refractor(lsp): do not return vscode model in provider
+- refractor(lsp): pass processed param to provider
+- refractor(lsp): new file relative action
+- refractor(lsp): split setting management
+- refractor(lsp): split server into provider
+- refractor(lsp): code action link validation
+- refractor(lsp): move link check impl
+- refractor(lsp): move getCurrentNode
+- refractor(lsp): remove unused variable
+- feat(lsp): check link when note list changed
+- fix(lsp): create file action not work in index
+- feat(lsp): add code action for invalid link
+- refractor(lsp): add type for wikilink node
+- feat(lsp): pending link check when not ready
+- feat(lsp): add wiki link diganostic
+- fix(lsp): link target hover quote in newline
+- feat(lsp): go to definition in wiki link
+- feat(lsp): show link target when hovering wiki link
+- feat: support for wiki link in lsp parser
+- feat: add hover to lsp
+- feat: parse and store ast of document
+- feat: implement simple lsp based on sample
+- feat: inform when error fixed when in quiet mode
+- refractor: split file reading and writing from pipeline
+- add changelog
+
+### Pull Requests
+- Merge pull request [#1](https://github.com/levirs565/kasten-note/issues/1) from levirs565/lsp
+
+
 <a name="v0.3.0"></a>
 ## [v0.3.0] - 2021-06-02
 - bump version
@@ -99,7 +137,8 @@
 - add find kasten dir functionality
 
 
-[Unreleased]: https://github.com/levirs565/kasten-note/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/levirs565/kasten-note/compare/0.4.0...HEAD
+[0.4.0]: https://github.com/levirs565/kasten-note/compare/v0.3.0...0.4.0
 [v0.3.0]: https://github.com/levirs565/kasten-note/compare/v0.2.1...v0.3.0
 [v0.2.1]: https://github.com/levirs565/kasten-note/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/levirs565/kasten-note/compare/v0.1.0...v0.2.0
