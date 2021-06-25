@@ -45,6 +45,7 @@
   },
   "scripts": {
     "watch": "tsc --watch",
+    "build": "rm -rf ./dist && tsc",
     "start": "cd doc && tsc && node ../dist/index.js",
     "test": "jest",
     "release": "release-it"

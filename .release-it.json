@@ -1,6 +1,9 @@
 {
   "hooks": {
-    "before:bump": "git-chglog --next-tag ${version} > CHANGELOG.md"
+    "before:init": "pnpm run test",
+    "before:bump": "git-chglog --next-tag ${version} > CHANGELOG.md",
+    "after:bump": "pnpm run build",
+    "after:release": "pnpm publish"
   },
   "git": {
     "commitMessage": "chore: bump version to ${version}",
