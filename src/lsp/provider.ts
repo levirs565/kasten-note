@@ -124,7 +124,7 @@ export class Provider {
     return getNodeInCursor(nodes, cursorOffset);
   }
 
-  getHoverText(docUri: string, position: Position) {
+  provideHoverText(docUri: string, position: Position) {
     const node = this.getCurrentNode(docUri, position);
 
     let text =
@@ -140,7 +140,7 @@ export class Provider {
     return text;
   }
 
-  getDefinitionUri(docUri: string, position: Position) {
+  provideDefinitionUri(docUri: string, position: Position) {
     const node = this.getCurrentNode(docUri, position);
     if (!node || !isWikiLinkNode(node)) return undefined;
 
@@ -161,7 +161,7 @@ export class Provider {
     fs.ensureFileSync(path);
   }
 
-  getCreateFileRelativeCodeAction(docUri: string, position: Position) {
+  provideCreateFileRelativeCodeAction(docUri: string, position: Position) {
     const node = this.getCurrentNode(docUri, position);
     if (!node || !isWikiLinkNode(node) || this.noteList.getById(node.value))
       return undefined;
@@ -172,7 +172,7 @@ export class Provider {
     ];
   }
 
-  getCompletionList(uri: string, position: Position) {
+  provideCompletionLinkList(uri: string, position: Position) {
     const node = this.getCurrentNode(uri, position)
     if (!node || !isWikiLinkNode(node))
       return

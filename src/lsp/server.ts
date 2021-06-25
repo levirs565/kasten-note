@@ -102,7 +102,7 @@ connection.onDidChangeWatchedFiles((_change) => {
 });
 
 connection.onHover((params: HoverParams) => {
-  const text = provider?.getHoverText(params.textDocument.uri, params.position);
+  const text = provider?.provideHoverText(params.textDocument.uri, params.position);
   if (text)
     return {
       contents: {
@@ -113,7 +113,7 @@ connection.onHover((params: HoverParams) => {
 });
 
 connection.onDefinition((params: DefinitionParams) => {
-  const definitionUri = provider?.getDefinitionUri(params.textDocument.uri, params.position);
+  const definitionUri = provider?.provideDefinitionUri(params.textDocument.uri, params.position);
   if (definitionUri)
     return {
       uri: definitionUri,
@@ -134,7 +134,7 @@ connection.onExecuteCommand((params: ExecuteCommandParams) => {
  */
 connection.onCodeAction((params: CodeActionParams) => {
   return provider!
-    .getCreateFileRelativeCodeAction(params.textDocument.uri, params.range.start)
+    .provideCreateFileRelativeCodeAction(params.textDocument.uri, params.range.start)
     ?.map((name) =>
       Command.create(
         `Create file ./${name}`,
@@ -147,7 +147,7 @@ connection.onCodeAction((params: CodeActionParams) => {
 
 connection.onCompletion(
   (params: TextDocumentPositionParams) => {
-    return provider?.getCompletionList(params.textDocument.uri, params.position)
+    return provider?.provideCompletionLinkList(params.textDocument.uri, params.position)
       ?.map((name) => ({
         label: name,
         kind: CompletionItemKind.File,
